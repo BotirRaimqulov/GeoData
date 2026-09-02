@@ -88,11 +88,22 @@ public class MineralCode
     public string? PatternKey { get; set; }
 }
 
-/// <summary>Tasnif / description shabloni.</summary>
+/// <summary>
+/// Tasnif / description shabloni. Litho/rang/tekstura/mineral/donadorlik maydonlari
+/// ixtiyoriy — to'ldirilgan maydon shu qiymatga mos bo'lishi shart, bo'sh maydon esa
+/// "joker" (istalgan qiymatga mos) hisoblanadi. Qancha ko'p maydon to'ldirilgan bo'lsa,
+/// shuncha aniqroq (o'ziga xos) shablon hisoblanadi — moslik qidirishda ustunlik beriladi.
+/// </summary>
 public class DescriptionTemplate
 {
     public int Id { get; set; }
     public string Text { get; set; } = "";
+    public int? LithoCode { get; set; }
+    public int? ColorCode { get; set; }
+    public int? TextureCode { get; set; }
+    public int? MineralCode { get; set; }
+    /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
+    public string? GrainSize { get; set; }
 }
 
 /// <summary>Dala jurnali qatori.</summary>
@@ -112,6 +123,8 @@ public class JournalRow
     public int? ColorCode { get; set; }
     public int? TextureCode { get; set; }
     public int? MineralCode { get; set; }
+    /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
+    public string? GrainSize { get; set; }
     public double? Hardness { get; set; }              // Qattiqlik toifasi
     public double? CarbonateCo2 { get; set; }          // Karbonatliligi CO2
     public string? Description { get; set; }

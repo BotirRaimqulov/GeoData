@@ -20,6 +20,9 @@ public partial class ReferenceViewModel : ObservableObject
     public ObservableCollection<MineralCode> Minerals { get; } = new();
     public ObservableCollection<DescriptionTemplate> Descriptions { get; } = new();
 
+    /// <summary>Tavsif shablonlarini Litho/Rang/Tekstura/Mineral bilan bog'lash uchun (spravochnik ro'yxatlari).</summary>
+    public RefCache Ref => RefCache.Instance;
+
     [ObservableProperty] private object? _selected;
     public string Title { get; }
 

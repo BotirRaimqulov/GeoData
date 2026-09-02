@@ -252,6 +252,15 @@
                                       ItemsSource="{Binding DataContext.Journal.Ref.Minerals, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       SelectedValue="{Binding MineralCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
 
+                            <TextBlock Text="DONADORLIGI" Style="{StaticResource Caption}" />
+                            <ComboBox Margin="0,4,0,14" SelectedValuePath="Tag"
+                                      SelectedValue="{Binding GrainSize, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBoxItem Content="—" Tag="{x:Null}" />
+                                <ComboBoxItem Content="Mayda" Tag="mayda" />
+                                <ComboBoxItem Content="O'rta" Tag="o'rta" />
+                                <ComboBoxItem Content="Yirik" Tag="yirik" />
+                            </ComboBox>
+
                             <Grid Margin="0,0,0,14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -281,7 +290,7 @@
                                     </Border>
                                     <Button Content="↻ Avto" FontSize="11" Padding="7,3" Cursor="Hand"
                                             Command="{Binding DataContext.Journal.RegenerateDescriptionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            ToolTip="Litho + rang + tekstura nomlaridan qayta yozish">
+                                            ToolTip="Eng mos tayyor shablondan (yoki litho/rang/tekstura/mineral/donadorlik nomlaridan) qayta yozish">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
                                                 <Setter Property="MinHeight" Value="0" />
@@ -290,11 +299,11 @@
                                     </Button>
                                 </StackPanel>
                             </Grid>
-                            <v:AutocompleteBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                            <v:AutocompleteBox x:Name="DescBox" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
                                                Suggestions="{Binding DataContext.Journal.DescriptionSuggestions, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                Placeholder="Litho/rang tanlansa avtomatik to'ladi — Tab bilan to'ldirish"
                                                MinHeight="72" Padding="11,8" />
-                            <TextBlock Text="Tab / → — taklifni to'ldirish · ↑ ↓ Enter — ro'yxatdan tanlash" FontSize="10"
+                            <TextBlock Text="Tab / → — taklifni to'ldirish · ↑ ↓ Enter — ro'yxatdan tanlash · so'zni ikki marta bosib tanlasangiz — muqobil variantlar chiqadi" FontSize="10"
                                        Foreground="{StaticResource TextMuted}" Margin="2,4,0,0" TextWrapping="Wrap" />
                         </StackPanel>
 

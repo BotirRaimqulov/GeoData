@@ -120,10 +120,79 @@
                 </DataGrid>
 
                 <!-- Description -->
-                <DataGrid ItemsSource="{Binding Descriptions}" SelectedItem="{Binding Selected}" BorderThickness="0"
-                          Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Description}">
+                <DataGrid x:Name="DescGrid" ItemsSource="{Binding Descriptions}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                          Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Description}"
+                          PreparingCellForEdit="DescGrid_PreparingCellForEdit">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Tavsif matni" Binding="{Binding Text}" Width="*" />
+                        <DataGridTextColumn Header="Tavsif matni" Binding="{Binding Text}" Width="3*" MinWidth="260" />
+
+                        <DataGridTemplateColumn Header="Litologik kod" Width="1.2*" MinWidth="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding LithoCode}" VerticalAlignment="Center" Margin="12,0" /></DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                            <DataGridTemplateColumn.CellEditingTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.Ref.Litho, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              SelectedValue="{Binding LithoCode, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellEditingTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Rang" Width="1.1*" MinWidth="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding ColorCode}" VerticalAlignment="Center" Margin="12,0" /></DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                            <DataGridTemplateColumn.CellEditingTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.Ref.Colors, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              SelectedValue="{Binding ColorCode, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellEditingTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Tekstura" Width="1.2*" MinWidth="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding TextureCode}" VerticalAlignment="Center" Margin="12,0" /></DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                            <DataGridTemplateColumn.CellEditingTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.Ref.Textures, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              SelectedValue="{Binding TextureCode, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellEditingTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Mineral" Width="1.2*" MinWidth="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding MineralCode}" VerticalAlignment="Center" Margin="12,0" /></DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                            <DataGridTemplateColumn.CellEditingTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.Ref.Minerals, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              SelectedValue="{Binding MineralCode, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellEditingTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Donadorligi" Width="1*" MinWidth="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding GrainSize}" VerticalAlignment="Center" Margin="12,0" /></DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                            <DataGridTemplateColumn.CellEditingTemplate>
+                                <DataTemplate>
+                                    <ComboBox SelectedValuePath="Tag" SelectedValue="{Binding GrainSize, UpdateSourceTrigger=PropertyChanged}">
+                                        <ComboBoxItem Content="—" Tag="{x:Null}" />
+                                        <ComboBoxItem Content="Mayda" Tag="mayda" />
+                                        <ComboBoxItem Content="O'rta" Tag="o'rta" />
+                                        <ComboBoxItem Content="Yirik" Tag="yirik" />
+                                    </ComboBox>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellEditingTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

@@ -120,7 +120,7 @@ public partial class JournalViewModel : ObservableObject
             Top = s.Bottom, Bottom = Math.Round(s.Bottom + s.Interval, 2),
             CoreRecoveryM = s.CoreRecoveryM, ZoneName = s.ZoneName,
             LithoCode = s.LithoCode, ColorCode = s.ColorCode, TextureCode = s.TextureCode,
-            MineralCode = s.MineralCode, Hardness = s.Hardness, CarbonateCo2 = s.CarbonateCo2,
+            MineralCode = s.MineralCode, GrainSize = s.GrainSize, Hardness = s.Hardness, CarbonateCo2 = s.CarbonateCo2,
             Description = s.Description,
         };
         var vm = new JournalRowVm(m);

@@ -7,6 +7,9 @@ namespace GeoDataPro.App.ViewModels;
 /// <summary>Dala jurnali jadvalidagi bitta qatorning tahrirlanadigan modeli.</summary>
 public partial class JournalRowVm : ObservableObject
 {
+    /// <summary>Donadorlik uchun ruxsat etilgan qiymatlar (Kern tavsifi popup'ida ham ishlatiladi).</summary>
+    public static readonly string[] GrainSizes = { "mayda", "o'rta", "yirik" };
+
     public JournalRow Model { get; }
 
     bool _ready;
@@ -24,6 +27,7 @@ public partial class JournalRowVm : ObservableObject
         _colorCode = model.ColorCode;
         _textureCode = model.TextureCode;
         _mineralCode = model.MineralCode;
+        _grainSize = model.GrainSize;
         _hardness = model.Hardness;
         _carbonateCo2 = model.CarbonateCo2;
         _description = model.Description;
@@ -51,6 +55,8 @@ public partial class JournalRowVm : ObservableObject
     [ObservableProperty] private int? _colorCode;
     [ObservableProperty] private int? _textureCode;
     [ObservableProperty] private int? _mineralCode;
+    /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
+    [ObservableProperty] private string? _grainSize;
     [ObservableProperty] private double? _hardness;
     [ObservableProperty] private double? _carbonateCo2;
     [ObservableProperty] private string? _description;
@@ -65,6 +71,7 @@ public partial class JournalRowVm : ObservableObject
     partial void OnColorCodeChanged(int? value) { Model.ColorCode = value; Touch(); OnPropertyChanged(nameof(ColorDisplay)); OnPropertyChanged(nameof(ColorHex)); AutoFillDescription(); }
     partial void OnTextureCodeChanged(int? value) { Model.TextureCode = value; Touch(); OnPropertyChanged(nameof(TextureDisplay)); AutoFillDescription(); }
     partial void OnMineralCodeChanged(int? value) { Model.MineralCode = value; Touch(); OnPropertyChanged(nameof(MineralDisplay)); AutoFillDescription(); }
+    partial void OnGrainSizeChanged(string? value) { Model.GrainSize = value; Touch(); AutoFillDescription(); }
     partial void OnHardnessChanged(double? value) { Model.Hardness = value; Touch(); }
     partial void OnCarbonateCo2Changed(double? value) { Model.CarbonateCo2 = value; Touch(); }
 
@@ -90,16 +97,26 @@ public partial class JournalRowVm : ObservableObject
 
     partial void OnDescriptionIsAutoChanged(bool value) { }
 
-    /// <summary>Litho + rang + tekstura + mineralizatsiya nomlaridan tavsif matnini yig'adi.</summary>
+    /// <summary>
+    /// Litho + rang + tekstura + mineralizatsiya + donadorlik kombinatsiyasiga eng mos
+    /// tayyor shablonni qidiradi (qancha ko'p maydon tanlangan bo'lsa, shuncha aniqroq
+    /// shablon topiladi). Mos shablon topilmasa, nomlarni oddiy birlashtirib yozadi.
+    /// </summary>
     public string BuildAutoDescription()
     {
         var r = RefCache.Instance;
+
+        var template = r.BestTemplate(LithoCode, ColorCode, TextureCode, MineralCode, GrainSize);
+        if (template != null) return template.Text;
+
         var parts = new System.Collections.Generic.List<string>();
 
         var litho = r.Litho4(LithoCode)?.Name;
         var color = r.Color4(ColorCode)?.Name;
         var head = string.Join(" ", new[] { litho, Lower(color) }.Where(s => !string.IsNullOrWhiteSpace(s)));
         if (!string.IsNullOrWhiteSpace(head)) parts.Add(head);
+
+        if (!string.IsNullOrWhiteSpace(GrainSize)) parts.Add($"{Lower(GrainSize)} donador");
 
         var texture = r.Texture4(TextureCode)?.Name;
         if (!string.IsNullOrWhiteSpace(texture)) parts.Add(Lower(texture)!);

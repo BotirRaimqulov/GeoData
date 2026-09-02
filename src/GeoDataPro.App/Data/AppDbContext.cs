@@ -71,5 +71,12 @@ public class AppDbContext : DbContext
         AddColumn("ColorCodes", "NameRu", "TEXT NULL");
         AddColumn("TextureCodes", "NameRu", "TEXT NULL");
         AddColumn("MineralCodes", "NameRu", "TEXT NULL");
+
+        AddColumn("JournalRows", "GrainSize", "TEXT NULL");
+        AddColumn("DescriptionTemplates", "LithoCode", "INTEGER NULL");
+        AddColumn("DescriptionTemplates", "ColorCode", "INTEGER NULL");
+        AddColumn("DescriptionTemplates", "TextureCode", "INTEGER NULL");
+        AddColumn("DescriptionTemplates", "MineralCode", "INTEGER NULL");
+        AddColumn("DescriptionTemplates", "GrainSize", "TEXT NULL");
     }
 }
