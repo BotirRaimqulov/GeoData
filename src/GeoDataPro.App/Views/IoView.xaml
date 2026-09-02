@@ -1,0 +1,24 @@
+<UserControl x:Class="GeoDataPro.App.Views.IoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Margin="24,20" MaxWidth="720" HorizontalAlignment="Left">
+        <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="Excel import" Style="{StaticResource H2}" Margin="0,0,0,6" />
+                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,12"
+                           Text="&quot;Шаблон.xlsx&quot; ko'rinishidagi faylni tanlang. Varaqlar: &quot;Dala jurnali&quot;, &quot;Namuna&quot;, &quot;SRP&quot;. Joriy quduq ma'lumotlari ustiga yoziladi." />
+                <Button Content="⭱  Excel fayldan import qilish" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
+                        Command="{Binding ImportExcelCommand}" />
+            </StackPanel>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="Excel eksport" Style="{StaticResource H2}" Margin="0,0,0,6" />
+                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,12"
+                           Text="Joriy quduqning barcha bo'limlarini bitta .xlsx faylga yozadi (Dala jurnali + SRP + Namuna)." />
+                <Button Content="⭳  Joriy quduqni eksport qilish" Style="{StaticResource GhostButton}" HorizontalAlignment="Left"
+                        Command="{Binding ExportExcelCommand}" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,162 @@
+<Window x:Class="GeoDataPro.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:GeoDataPro.App.ViewModels"
+        xmlns:v="clr-namespace:GeoDataPro.App.Views"
+        Title="GeoData Pro" Height="900" Width="1500"
+        MinHeight="640" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="{StaticResource WindowBg}"
+        FontFamily="{StaticResource UiFont}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="248" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ================= Sidebar ================= -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <!-- Brand -->
+                <Border DockPanel.Dock="Top" Height="64" Padding="22,0" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="30" Height="30" CornerRadius="8" Background="{StaticResource Accent}" Margin="0,0,11,0">
+                            <TextBlock Text="◉" Foreground="White" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="GeoData Pro" FontSize="15" FontWeight="SemiBold" />
+                            <TextBlock Text="Geologik dala jurnali" FontSize="10" Foreground="{StaticResource TextMuted}" Margin="0,1,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Footer -->
+                <Border DockPanel.Dock="Bottom" Padding="22,12" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,1,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource AccentSoft}" Margin="0,0,10,0">
+                            <TextBlock Text="GA" Foreground="{StaticResource AccentDark}" FontSize="11" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding State.CurrentWell.Geologist, TargetNullValue='Geolog'}" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Version}" FontSize="10" Foreground="{StaticResource TextMuted}" Margin="0,1,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,4,0,8">
+                        <TextBlock Text="MA'LUMOT KIRITISH" Style="{StaticResource NavHeader}" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="▤" Content="Dala jurnali"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=journal}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="journal" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="⬡" Content="Namuna (Образцы)"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=samples}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="samples" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="∿" Content="SRP (Kern GK)"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=srp}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="srp" />
+
+                        <TextBlock Text="SPRAVOCHNIKLAR" Style="{StaticResource NavHeader}" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="▦" Content="Litologik kodlar"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=litho}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="litho" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◧" Content="Kern ranglari"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=colors}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="colors" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◈" Content="Teksturalar"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=textures}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="textures" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="✦" Content="Mineralizatsiya"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=minerals}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="minerals" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="▥" Content="Zonalar"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=zones}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="zones" />
+
+                        <TextBlock Text="QUDUQLAR" Style="{StaticResource NavHeader}" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◎" Content="Quduqlar"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=wells}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="wells" />
+
+                        <TextBlock Text="ASBOBLAR" Style="{StaticResource NavHeader}" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="⇅" Content="Import / Eksport"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=io}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="io" />
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- ================= Main area ================= -->
+        <DockPanel Grid.Column="1">
+
+            <!-- Header -->
+            <Border DockPanel.Dock="Top" Height="72" Background="{StaticResource HeaderBg}"
+                    BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Padding="24,0">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding SectionTitle}" Style="{StaticResource H1}" />
+                        <TextBlock Text="  ›  " Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" />
+                        <TextBlock Text="Loyiha:" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding State.CurrentProject.Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Text="  ›  " Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" />
+                        <TextBlock Text="Quduq:" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding State.CurrentWell.Number}" FontWeight="SemiBold" Foreground="{StaticResource AccentDark}" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <StackPanel Margin="0,0,12,0" VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <TextBlock Text="Geolog" Style="{StaticResource Caption}" HorizontalAlignment="Right" />
+                            <TextBlock Text="{Binding State.CurrentWell.Geologist, TargetNullValue='—'}" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                        </StackPanel>
+                        <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource AccentSoft}">
+                            <TextBlock Text="GA" Foreground="{StaticResource AccentDark}" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Status bar -->
+            <Border DockPanel.Dock="Bottom" Height="30" Background="{StaticResource HeaderBg}"
+                    BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="16,0">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Version}" Foreground="{StaticResource TextMuted}" FontSize="11" />
+                        <Ellipse Width="7" Height="7" Fill="{StaticResource Success}" Margin="14,0,6,0" />
+                        <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Clock}" Foreground="{StaticResource TextMuted}" FontSize="11" Margin="18,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Hotkeys:  Ctrl+S Saqlash · Ctrl+N Qator · Del O'chirish" Foreground="{StaticResource TextMuted}" FontSize="11" Margin="0,0,18,0" />
+                        <Ellipse Width="7" Height="7" Fill="{StaticResource Success}" Margin="0,0,6,0" />
+                        <TextBlock Text="{Binding DbLabel}" Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Content switcher -->
+            <Grid>
+                <v:JournalView   Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=journal}" />
+                <v:SamplesView   Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=samples}" />
+                <v:SrpView       Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=srp}" />
+                <v:ReferenceView DataContext="{Binding LithoRef}"   Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=litho}" />
+                <v:ReferenceView DataContext="{Binding ColorRef}"   Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=colors}" />
+                <v:ReferenceView DataContext="{Binding TextureRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=textures}" />
+                <v:ReferenceView DataContext="{Binding MineralRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=minerals}" />
+                <v:ReferenceView DataContext="{Binding ZoneRef}"    Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=zones}" />
+                <v:WellsView     Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=wells}" />
+                <v:IoView        Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=io}" />
+            </Grid>
+        </DockPanel>
+    </Grid>
+</Window>

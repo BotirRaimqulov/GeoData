@@ -1,0 +1,157 @@
+using System.Collections.Generic;
+
+namespace GeoDataPro.App.Data;
+
+/// <summary>Loyiha (masalan "Loyiha-01").</summary>
+public class Project
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? CoordinateX { get; set; }
+    public string? CoordinateY { get; set; }
+    public string? CoordinateH { get; set; }
+    public string? Notes { get; set; }
+
+    public List<Well> Wells { get; set; } = new();
+}
+
+/// <summary>Skvazhina / quduq.</summary>
+public class Well
+{
+    public int Id { get; set; }
+    public int ProjectId { get; set; }
+    public Project? Project { get; set; }
+
+    /// <summary>Quduq raqami, masalan "1001".</summary>
+    public string Number { get; set; } = "";
+    public string? RigNumber { get; set; }          // Burg'ilash Usk №
+    public double? StartDepth { get; set; }
+    public double? EndDepth { get; set; }
+    public string? StartDate { get; set; }
+    public string? EndDate { get; set; }
+    public string? Geologist { get; set; }
+    public string? Notes { get; set; }
+
+    public List<JournalRow> JournalRows { get; set; } = new();
+    public List<SampleRow> SampleRows { get; set; } = new();
+    public List<SrpRow> SrpRows { get; set; } = new();
+}
+
+/// <summary>Litologik kod spravochnigi.</summary>
+public class LithoCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    /// <summary>O'zbekcha nomi.</summary>
+    public string Name { get; set; } = "";
+    /// <summary>Ruscha nomi (наименование породы).</summary>
+    public string? NameRu { get; set; }
+    public string? StratCode { get; set; }
+    /// <summary>Fayl nomi (assets/litho/*.png) yoki HEX rang.</summary>
+    public string? PatternKey { get; set; }
+    public string? HexColor { get; set; }
+}
+
+/// <summary>Kern rangi spravochnigi.</summary>
+public class ColorCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    /// <summary>O'zbekcha nomi.</summary>
+    public string Name { get; set; } = "";
+    /// <summary>Ruscha nomi (цвет).</summary>
+    public string? NameRu { get; set; }
+    public string HexColor { get; set; } = "#B0B0B0";
+}
+
+/// <summary>Tekstura spravochnigi.</summary>
+public class TextureCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    /// <summary>O'zbekcha nomi.</summary>
+    public string Name { get; set; } = "";
+    /// <summary>Ruscha nomi (текстура).</summary>
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
+/// <summary>Mineralizatsiya spravochnigi.</summary>
+public class MineralCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    /// <summary>O'zbekcha nomi.</summary>
+    public string Name { get; set; } = "";
+    /// <summary>Ruscha nomi (минерализация / включения).</summary>
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
+/// <summary>Zona spravochnigi.</summary>
+public class Zone
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? Description { get; set; }
+    public string HexColor { get; set; } = "#7C9EE0";
+}
+
+/// <summary>Tasnif / description shabloni.</summary>
+public class DescriptionTemplate
+{
+    public int Id { get; set; }
+    public string Text { get; set; } = "";
+}
+
+/// <summary>Dala jurnali qatori.</summary>
+public class JournalRow
+{
+    public int Id { get; set; }
+    public int WellId { get; set; }
+    public Well? Well { get; set; }
+
+    public int OrderNo { get; set; }
+    public double Top { get; set; }
+    public double Bottom { get; set; }
+    /// <summary>Kern chiqishi (m).</summary>
+    public double CoreRecoveryM { get; set; }
+    public string? ZoneName { get; set; }
+    public int? LithoCode { get; set; }
+    public int? ColorCode { get; set; }
+    public int? TextureCode { get; set; }
+    public int? MineralCode { get; set; }
+    public double? Hardness { get; set; }              // Qattiqlik toifasi
+    public double? CarbonateCo2 { get; set; }          // Karbonatliligi CO2
+    public string? Description { get; set; }
+
+    public double Interval => System.Math.Round(Bottom - Top, 3);
+    public double RecoveryPercent => Interval > 0 ? System.Math.Round(CoreRecoveryM / Interval * 100, 1) : 0;
+}
+
+/// <summary>Namuna (образец) qatori.</summary>
+public class SampleRow
+{
+    public int Id { get; set; }
+    public int WellId { get; set; }
+    public Well? Well { get; set; }
+
+    public long SampleNumber { get; set; }
+    public double Top { get; set; }
+    public double Bottom { get; set; }
+    public string? ZoneName { get; set; }
+    public string? Notes { get; set; }
+
+    public double Length => System.Math.Round(Bottom - Top, 3);
+}
+
+/// <summary>SRP - kern bo'yicha gamma-karotaj (Core_GK) nuqtasi.</summary>
+public class SrpRow
+{
+    public int Id { get; set; }
+    public int WellId { get; set; }
+    public Well? Well { get; set; }
+
+    public double Md { get; set; }
+    public double CoreGk { get; set; }
+}

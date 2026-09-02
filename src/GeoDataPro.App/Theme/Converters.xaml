@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:inf="clr-namespace:GeoDataPro.App.Infrastructure">
+
+    <inf:SectionEqualsConverter x:Key="SecEq" />
+    <inf:SectionToVisibilityConverter x:Key="SecVis" />
+    <inf:EnumToVisibilityConverter x:Key="EnumVis" />
+    <inf:HexToBrushConverter x:Key="HexBrush" />
+    <inf:PatternToImageConverter x:Key="Pattern" />
+    <inf:NullToVisibilityConverter x:Key="NullToVis" />
+    <inf:NullToVisibilityConverter x:Key="NotNullToVis" Invert="True" />
+    <inf:BoolToVisibilityConverter x:Key="BoolToVis" />
+    <inf:BoolToVisibilityConverter x:Key="InvBoolToVis" Invert="True" />
+
+</ResourceDictionary>
