@@ -37,12 +37,6 @@
                                 ToolTip="Yangi quduq qo'shish" Command="{Binding AddWellCommand}" />
                     </StackPanel>
                 </StackPanel>
-                <StackPanel Margin="0,0,16,0">
-                    <TextBlock Text="Ma'lumot turi" Style="{StaticResource FieldLabel}" />
-                    <ComboBox Width="170" SelectedIndex="0">
-                        <ComboBoxItem Content="Dala jurnali" />
-                    </ComboBox>
-                </StackPanel>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
@@ -66,7 +60,6 @@
             <Grid Grid.Column="0" Margin="0,0,16,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -185,50 +178,6 @@
                                 Margin="16,0,0,0" Command="{Binding Journal.SaveCommand}"
                                 Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
-                </Border>
-
-                <!-- Summary tabs -->
-                <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0">
-                    <TabControl>
-                        <TabItem Header="Svodka">
-                            <Grid Margin="0,14,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <v:StatTile Grid.Column="0" Caption="Jami intervallar" Value="{Binding Journal.TotalRows}" Unit="yozuv" />
-                                <v:StatTile Grid.Column="1" Caption="Umumiy quvvat" Value="{Binding Journal.TotalThickness}" Unit="m" />
-                                <v:StatTile Grid.Column="2" Caption="Kern (summa)" Value="{Binding Journal.TotalCore}" Unit="m" />
-                                <v:StatTile Grid.Column="3" Caption="O'rtacha kern chiqishi" Value="{Binding Journal.AvgRecovery}" Unit="%" />
-                                <Border Grid.Column="4" Margin="8,0,0,0" Padding="12" Background="#FBFCFE"
-                                        BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="8">
-                                    <StackPanel>
-                                        <TextBlock Text="Quduq profili (zonalar)" Style="{StaticResource Caption}" Margin="0,0,0,8" />
-                                        <ItemsControl ItemsSource="{Binding Journal.Profile}" Height="26">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="{Binding Hex, Converter={StaticResource HexBrush}}" Margin="1,0" CornerRadius="2">
-                                                        <TextBlock Text="{Binding Label}" FontSize="10" Foreground="#33000000"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                        <Grid Margin="0,4,0,0">
-                                            <TextBlock Text="{Binding Journal.DepthFrom, StringFormat={}{0:0.#} m}" FontSize="10" Foreground="{StaticResource TextMuted}" />
-                                            <TextBlock Text="{Binding Journal.DepthTo, StringFormat={}{0:0.#} m}" FontSize="10" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Right" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
-                        </TabItem>
-                    </TabControl>
                 </Border>
             </Grid>
 
