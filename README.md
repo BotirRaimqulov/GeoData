@@ -27,7 +27,7 @@ ularni "Quduqlar" bo'limidan qo'shasiz.
 | **Dala jurnali** | Asosiy jadval: TOP/BOTTOM, interval, kern chiqishi, litol. kod (belgi bilan), rang, tekstura, tavsif. Detali paneli, Svodka, quduq profili |
 | Namuna (Образцы) | Namuna intervallari |
 | SRP (Kern GK) | Kern bo'yicha gamma-karotaj (Core_GK) + karotaj chizig'i |
-| Litologik kodlar / Kern ranglari / Teksturalar / Mineralizatsiya / Zonalar / Tavsif shablonlari | Spravochnik tahrirlagichlari |
+| Litologik kodlar / Kern ranglari / Teksturalar / Mineralizatsiya / Tavsif shablonlari | Spravochnik tahrirlagichlari |
 | Quduqlar / Loyihalar | Loyiha va quduq CRUD |
 | Ma'lumotlar tekshiruvi | Intervallar kesishishi, kern chiqishi > interval, noma'lum kodlar va h.k. |
 | Import / Eksport | `Шаблон.xlsx` formatida Excel import/eksport (Dala jurnali + Namuna + SRP) |

@@ -119,30 +119,6 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <!-- Zone -->
-                <DataGrid ItemsSource="{Binding Zones}" SelectedItem="{Binding Selected}" BorderThickness="0"
-                          Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Zone}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Nomi" Binding="{Binding Name}" Width="120" />
-                        <DataGridTextColumn Header="Tavsif" Binding="{Binding Description}" Width="*" />
-                        <DataGridTemplateColumn Header="Rang" Width="180">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Width="20" Height="20" CornerRadius="4" Margin="0,0,8,0"
-                                                Background="{Binding HexColor, Converter={StaticResource HexBrush}}"
-                                                BorderBrush="{StaticResource BorderStrong}" BorderThickness="1" />
-                                        <TextBlock Text="{Binding HexColor}" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                            <DataGridTemplateColumn.CellEditingTemplate>
-                                <DataTemplate><TextBox Text="{Binding HexColor, UpdateSourceTrigger=PropertyChanged}" /></DataTemplate>
-                            </DataGridTemplateColumn.CellEditingTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-
                 <!-- Description -->
                 <DataGrid ItemsSource="{Binding Descriptions}" SelectedItem="{Binding Selected}" BorderThickness="0"
                           Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Description}">

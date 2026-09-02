@@ -194,12 +194,11 @@ public partial class JournalViewModel : ObservableObject
         if (span <= 0) return;
         foreach (var r in Rows.OrderBy(r => r.Top))
         {
-            var z = _ref.Zones.FirstOrDefault(x => x.Name == r.ZoneName);
             Profile.Add(new ProfileSegment
             {
                 Label = r.ZoneName ?? "",
                 Weight = Math.Max(r.Interval, 0.01),
-                Hex = z?.HexColor ?? r.ColorHex,
+                Hex = r.ColorHex,
             });
         }
         OnPropertyChanged(nameof(Profile));

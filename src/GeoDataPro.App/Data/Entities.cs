@@ -88,15 +88,6 @@ public class MineralCode
     public string? PatternKey { get; set; }
 }
 
-/// <summary>Zona spravochnigi.</summary>
-public class Zone
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = "";
-    public string? Description { get; set; }
-    public string HexColor { get; set; } = "#7C9EE0";
-}
-
 /// <summary>Tasnif / description shabloni.</summary>
 public class DescriptionTemplate
 {

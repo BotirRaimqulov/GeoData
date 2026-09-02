@@ -30,13 +30,6 @@ public static class Seed
         }
 
         BackfillRussianNames(db);
-        if (!db.Zones.Any())
-        {
-            var palette = new[] { "#7C9EE0", "#7FC7A4", "#C9A8E0", "#E8C468", "#6FBFD0", "#E8938A", "#9AB0C4", "#8FBF6F" };
-            for (int i = 1; i <= 12; i++)
-                db.Zones.Add(new Zone { Name = i.ToString(), Description = $"Zona {i}", HexColor = palette[(i - 1) % palette.Length] });
-            db.SaveChanges();
-        }
         if (!db.DescriptionTemplates.Any())
         {
             foreach (var t in new[]

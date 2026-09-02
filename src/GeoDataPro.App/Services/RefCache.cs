@@ -11,7 +11,6 @@ public class RefCache
     public List<ColorCode> Colors { get; private set; } = new();
     public List<TextureCode> Textures { get; private set; } = new();
     public List<MineralCode> Minerals { get; private set; } = new();
-    public List<Zone> Zones { get; private set; } = new();
     public List<DescriptionTemplate> Descriptions { get; private set; } = new();
 
     Dictionary<int, LithoCode> _litho = new();
@@ -26,7 +25,6 @@ public class RefCache
         Colors = db.ColorCodes.OrderBy(x => x.Code).ToList();
         Textures = db.TextureCodes.OrderBy(x => x.Code).ToList();
         Minerals = db.MineralCodes.OrderBy(x => x.Code).ToList();
-        Zones = db.Zones.OrderBy(x => x.Id).ToList();
         Descriptions = db.DescriptionTemplates.OrderBy(x => x.Text).ToList();
 
         _litho = Litho.ToDictionary(x => x.Code);

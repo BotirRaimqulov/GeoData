@@ -78,9 +78,6 @@
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="✦" Content="Mineralizatsiya"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=minerals}"
                                      Command="{Binding NavigateCommand}" CommandParameter="minerals" />
-                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="▥" Content="Zonalar"
-                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=zones}"
-                                     Command="{Binding NavigateCommand}" CommandParameter="zones" />
 
                         <TextBlock Text="QUDUQLAR" Style="{StaticResource NavHeader}" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◎" Content="Quduqlar"
@@ -153,7 +150,6 @@
                 <v:ReferenceView DataContext="{Binding ColorRef}"   Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=colors}" />
                 <v:ReferenceView DataContext="{Binding TextureRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=textures}" />
                 <v:ReferenceView DataContext="{Binding MineralRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=minerals}" />
-                <v:ReferenceView DataContext="{Binding ZoneRef}"    Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=zones}" />
                 <v:WellsView     Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=wells}" />
                 <v:IoView        Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=io}" />
             </Grid>

@@ -13,7 +13,6 @@ public class AppDbContext : DbContext
     public DbSet<ColorCode> ColorCodes => Set<ColorCode>();
     public DbSet<TextureCode> TextureCodes => Set<TextureCode>();
     public DbSet<MineralCode> MineralCodes => Set<MineralCode>();
-    public DbSet<Zone> Zones => Set<Zone>();
     public DbSet<DescriptionTemplate> DescriptionTemplates => Set<DescriptionTemplate>();
     public DbSet<JournalRow> JournalRows => Set<JournalRow>();
     public DbSet<SampleRow> SampleRows => Set<SampleRow>();
