@@ -28,6 +28,7 @@ public partial class JournalViewModel : ObservableObject
     public JournalViewModel()
     {
         _state.WellChanged += Load;
+        _state.DataChanged += RebuildSuggestions;
         Load();
     }
 

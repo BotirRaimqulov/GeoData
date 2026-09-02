@@ -24,6 +24,7 @@ public partial class MainViewModel : ObservableObject
     public ReferenceViewModel ColorRef { get; } = new(ReferenceViewModel.Kind.Color);
     public ReferenceViewModel TextureRef { get; } = new(ReferenceViewModel.Kind.Texture);
     public ReferenceViewModel MineralRef { get; } = new(ReferenceViewModel.Kind.Mineral);
+    public ReferenceViewModel DescriptionRef { get; } = new(ReferenceViewModel.Kind.Description);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SectionTitle))]
@@ -38,6 +39,7 @@ public partial class MainViewModel : ObservableObject
         "colors" => "Kern ranglari",
         "textures" => "Teksturalar",
         "minerals" => "Mineralizatsiya",
+        "descriptions" => "Tavsif shablonlari",
         "wells" => "Quduqlar",
         "io" => "Import / Eksport",
         _ => "GeoData Pro",
