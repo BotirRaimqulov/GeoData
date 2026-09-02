@@ -70,16 +70,17 @@
                     <DataGrid x:Name="Grid" ItemsSource="{Binding Journal.Rows}"
                               SelectedItem="{Binding Journal.Selected}"
                               BorderThickness="0" CanUserSortColumns="False"
-                              HorizontalScrollBarVisibility="Auto" MaxWidth="10000">
+                              HorizontalScrollBarVisibility="Auto" MaxWidth="10000"
+                              PreparingCellForEdit="Grid_PreparingCellForEdit">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="42" />
-                            <DataGridTextColumn Header="Top, m" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="72" />
-                            <DataGridTextColumn Header="Bottom, m" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="82" />
-                            <DataGridTextColumn Header="Interval" Binding="{Binding Interval, StringFormat=N1}" IsReadOnly="True" Width="70" />
-                            <DataGridTextColumn Header="Kern, m" Binding="{Binding CoreRecoveryM, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="70" />
-                            <DataGridTextColumn Header="Zona" Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Width="64" />
+                            <DataGridTextColumn Header="Top, m" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="0.9*" MinWidth="72" />
+                            <DataGridTextColumn Header="Bottom, m" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="82" />
+                            <DataGridTextColumn Header="Interval" Binding="{Binding Interval, StringFormat=N1}" IsReadOnly="True" Width="0.85*" MinWidth="70" />
+                            <DataGridTextColumn Header="Kern, m" Binding="{Binding CoreRecoveryM, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="0.85*" MinWidth="70" />
+                            <DataGridTextColumn Header="Zona" Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Width="0.8*" MinWidth="64" />
 
-                            <DataGridTemplateColumn Header="Litol. kod" Width="110">
+                            <DataGridTemplateColumn Header="Litol. kod" Width="1.3*" MinWidth="110">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -118,7 +119,7 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Rang" Width="90">
+                            <DataGridTemplateColumn Header="Rang" Width="1.1*" MinWidth="90">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -151,7 +152,7 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Tekstura" Width="110">
+                            <DataGridTemplateColumn Header="Tekstura" Width="1.3*" MinWidth="110">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate><TextBlock Text="{Binding TextureDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -164,7 +165,7 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTextColumn Header="Kern tavsifi" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="180" />
+                            <DataGridTextColumn Header="Kern tavsifi" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2.5*" MinWidth="180" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
