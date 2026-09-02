@@ -23,7 +23,7 @@
                 <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}" BorderThickness="0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="MD (m)" Binding="{Binding Md, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="140" />
-                        <DataGridTextColumn Header="Core_GK" Binding="{Binding CoreGk, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                        <DataGridTextColumn Header="Core_GK" Binding="{Binding CoreGk, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" Width="140" />
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
