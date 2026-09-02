@@ -7,6 +7,7 @@
         MinHeight="640" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
+        Icon="Assets/AppIcon.ico"
         Background="{StaticResource WindowBg}"
         FontFamily="{StaticResource UiFont}"
         TextOptions.TextFormattingMode="Display"

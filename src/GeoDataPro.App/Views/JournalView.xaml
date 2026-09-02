@@ -30,8 +30,12 @@
                 </StackPanel>
                 <StackPanel Margin="0,0,16,0">
                     <TextBlock Text="Quduq" Style="{StaticResource FieldLabel}" />
-                    <ComboBox Width="140" ItemsSource="{Binding State.CurrentWells}" DisplayMemberPath="Number"
-                              SelectedItem="{Binding State.CurrentWell}" />
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox Width="140" ItemsSource="{Binding State.CurrentWells}" DisplayMemberPath="Number"
+                                  SelectedItem="{Binding State.CurrentWell}" />
+                        <Button Content="+" Style="{StaticResource GhostButton}" Padding="10,3" Margin="6,0,0,0"
+                                ToolTip="Yangi quduq qo'shish" Command="{Binding AddWellCommand}" />
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Margin="0,0,16,0">
                     <TextBlock Text="Ma'lumot turi" Style="{StaticResource FieldLabel}" />
@@ -73,8 +77,7 @@
                               HorizontalScrollBarVisibility="Auto" MaxWidth="10000"
                               PreparingCellForEdit="Grid_PreparingCellForEdit">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="42" />
-                            <DataGridTextColumn Header="Zona" Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Width="0.8*" MinWidth="64" />
+                            <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="52" />
                             <DataGridTextColumn Header="Top, m" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="0.9*" MinWidth="72" />
                             <DataGridTextColumn Header="Bottom, m" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="82" />
                             <DataGridTextColumn Header="Interval" Binding="{Binding Interval, StringFormat=N1}" IsReadOnly="True" Width="0.85*" MinWidth="70" />
@@ -254,9 +257,6 @@
                             </StackPanel>
                             <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding RecoveryPercent, Mode=OneWay}"
                                          Foreground="{StaticResource Accent}" Background="{StaticResource GridLine}" Margin="0,0,0,14" />
-
-                            <TextBlock Text="ZONA" Style="{StaticResource Caption}" />
-                            <TextBox Text="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,14" />
 
                             <TextBlock Text="LITOLOGIK KOD" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14"

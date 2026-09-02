@@ -196,7 +196,7 @@ public partial class JournalViewModel : ObservableObject
         {
             Profile.Add(new ProfileSegment
             {
-                Label = r.ZoneName ?? "",
+                Label = r.OrderNo.ToString(),
                 Weight = Math.Max(r.Interval, 0.01),
                 Hex = r.ColorHex,
             });

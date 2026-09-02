@@ -68,6 +68,22 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     void Navigate(string section) => CurrentSection = section;
 
+    // ---------------- Quduq tez qo'shish (Dala jurnali, Namuna, SRP) ----------------
+    [RelayCommand]
+    void AddWell()
+    {
+        var project = State.CurrentProject;
+        if (project == null) { Warn("Avval loyiha tanlang."); return; }
+        var name = Views.PromptDialog.Ask("Yangi quduq nomi:", "Quduq qo'shish", "0000");
+        if (string.IsNullOrWhiteSpace(name)) return;
+        using var db = new AppDbContext();
+        var well = new Well { ProjectId = project.Id, Number = name.Trim() };
+        db.Wells.Add(well);
+        db.SaveChanges();
+        State.Reload(project.Id, well.Id);
+        Wells.Load();
+    }
+
     // ---------------- Import / Export ----------------
     [RelayCommand]
     void ImportExcel()

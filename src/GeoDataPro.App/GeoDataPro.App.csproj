@@ -10,6 +10,7 @@
     <AssemblyName>GeoDataPro</AssemblyName>
     <RootNamespace>GeoDataPro.App</RootNamespace>
     <Version>1.0.0</Version>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\AppIcon.ico" />
     <Resource Include="Assets\litho\**\*.png" />
     <Resource Include="Assets\texture\**\*.png" />
     <Resource Include="Assets\mineral\**\*.png" />
