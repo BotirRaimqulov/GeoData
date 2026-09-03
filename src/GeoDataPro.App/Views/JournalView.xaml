@@ -75,8 +75,8 @@
                               PreparingCellForEdit="Grid_PreparingCellForEdit">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="0.7*" MinWidth="70" />
-                            <DataGridTextColumn Header="Top, m" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
-                            <DataGridTextColumn Header="Bottom, m" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
+                            <DataGridTextColumn Header="Yuqori (m)" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
+                            <DataGridTextColumn Header="Pastki (m)" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
                             <DataGridTextColumn Header="Interval" Binding="{Binding Interval, StringFormat=N1}" IsReadOnly="True" Width="1*" MinWidth="100" />
                             <DataGridTextColumn Header="Kern, m" Binding="{Binding CoreRecoveryM, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
 
@@ -197,7 +197,7 @@
                         <TextBlock Text="Qator detallari" Style="{StaticResource H2}" Margin="0,0,0,14" />
                         <StackPanel DataContext="{Binding Journal.Selected}"
                                     Visibility="{Binding Converter={StaticResource NullToVis}}">
-                            <TextBlock Text="INTERVAL GLUBIN" Style="{StaticResource Caption}" />
+                            <TextBlock Text="YUQORI / PASTKI" Style="{StaticResource Caption}" />
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,14">
                                 <TextBox Width="80" Text="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="—" Margin="8,0" VerticalAlignment="Center" Foreground="{StaticResource TextMuted}" />
