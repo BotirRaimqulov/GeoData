@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GeoDataPro.App.Data;
 using GeoDataPro.App.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace GeoDataPro.App.ViewModels;
 
@@ -46,11 +47,11 @@ public partial class ReferenceViewModel : ObservableObject
         Litho.Clear(); Colors.Clear(); Textures.Clear(); Minerals.Clear(); Descriptions.Clear();
         switch (CurrentKind)
         {
-            case Kind.Litho: foreach (var x in db.LithoCodes.OrderBy(x => x.Code)) Litho.Add(x); break;
-            case Kind.Color: foreach (var x in db.ColorCodes.OrderBy(x => x.Code)) Colors.Add(x); break;
-            case Kind.Texture: foreach (var x in db.TextureCodes.OrderBy(x => x.Code)) Textures.Add(x); break;
-            case Kind.Mineral: foreach (var x in db.MineralCodes.OrderBy(x => x.Code)) Minerals.Add(x); break;
-            case Kind.Description: foreach (var x in db.DescriptionTemplates.OrderBy(x => x.Text)) Descriptions.Add(x); break;
+            case Kind.Litho: foreach (var x in db.LithoCodes.AsNoTracking().OrderBy(x => x.Code)) Litho.Add(x); break;
+            case Kind.Color: foreach (var x in db.ColorCodes.AsNoTracking().OrderBy(x => x.Code)) Colors.Add(x); break;
+            case Kind.Texture: foreach (var x in db.TextureCodes.AsNoTracking().OrderBy(x => x.Code)) Textures.Add(x); break;
+            case Kind.Mineral: foreach (var x in db.MineralCodes.AsNoTracking().OrderBy(x => x.Code)) Minerals.Add(x); break;
+            case Kind.Description: foreach (var x in db.DescriptionTemplates.AsNoTracking().OrderBy(x => x.Text)) Descriptions.Add(x); break;
         }
     }
 

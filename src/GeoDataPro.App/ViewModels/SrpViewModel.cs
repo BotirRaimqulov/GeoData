@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GeoDataPro.App.Data;
 using GeoDataPro.App.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace GeoDataPro.App.ViewModels;
 
@@ -35,7 +36,7 @@ public partial class SrpViewModel : ObservableObject
         if (well != null)
         {
             using var db = new AppDbContext();
-            foreach (var r in db.SrpRows.Where(s => s.WellId == well.Id).OrderBy(s => s.Md))
+            foreach (var r in db.SrpRows.AsNoTracking().Where(s => s.WellId == well.Id).OrderBy(s => s.Md))
                 Rows.Add(r);
         }
         Selected = Rows.FirstOrDefault();

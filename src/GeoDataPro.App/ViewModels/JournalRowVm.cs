@@ -33,8 +33,6 @@ public partial class JournalRowVm : ObservableObject
         _textureCode = model.TextureCode;
         _mineralCode = model.MineralCode;
         _grainSize = model.GrainSize;
-        _hardness = model.Hardness;
-        _carbonateCo2 = model.CarbonateCo2;
         _description = model.Description;
         _lastAuto = BuildAutoDescription();
         // Tavsif bo'sh yoki hozirgi avto-natijaga teng bo'lsa — avto rejimda.
@@ -62,8 +60,6 @@ public partial class JournalRowVm : ObservableObject
     [ObservableProperty] private int? _mineralCode;
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     [ObservableProperty] private string? _grainSize;
-    [ObservableProperty] private double? _hardness;
-    [ObservableProperty] private double? _carbonateCo2;
     [ObservableProperty] private string? _description;
 
     public bool IsDirty { get; private set; }
@@ -77,8 +73,6 @@ public partial class JournalRowVm : ObservableObject
     partial void OnTextureCodeChanged(int? value) { Model.TextureCode = value; Touch(); OnPropertyChanged(nameof(TextureDisplay)); AutoFillDescription(); }
     partial void OnMineralCodeChanged(int? value) { Model.MineralCode = value; Touch(); OnPropertyChanged(nameof(MineralDisplay)); AutoFillDescription(); }
     partial void OnGrainSizeChanged(string? value) { Model.GrainSize = value; Touch(); AutoFillDescription(); }
-    partial void OnHardnessChanged(double? value) { Model.Hardness = value; Touch(); }
-    partial void OnCarbonateCo2Changed(double? value) { Model.CarbonateCo2 = value; Touch(); }
 
     bool _suppressDescNotify;
     partial void OnDescriptionChanged(string? value)

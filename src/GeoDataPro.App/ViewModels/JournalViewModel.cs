@@ -55,7 +55,8 @@ public partial class JournalViewModel : ObservableObject
         if (well == null) { Recalc(); return; }
 
         using var db = new AppDbContext();
-        var rows = db.JournalRows.Where(r => r.WellId == well.Id)
+        var rows = db.JournalRows.AsNoTracking()
+                                 .Where(r => r.WellId == well.Id)
                                  .OrderBy(r => r.OrderNo).ThenBy(r => r.Top).ToList();
         foreach (var r in rows)
         {
@@ -138,7 +139,7 @@ public partial class JournalViewModel : ObservableObject
             Top = s.Bottom, Bottom = Math.Round(s.Bottom + s.Interval, 2),
             CoreRecoveryM = s.CoreRecoveryM, ZoneName = s.ZoneName,
             LithoCode = s.LithoCode, ColorCode = s.ColorCode, TextureCode = s.TextureCode,
-            MineralCode = s.MineralCode, GrainSize = s.GrainSize, Hardness = s.Hardness, CarbonateCo2 = s.CarbonateCo2,
+            MineralCode = s.MineralCode, GrainSize = s.GrainSize,
             Description = s.Description,
         };
         var vm = new JournalRowVm(m);

@@ -60,11 +60,26 @@ public class AppDbContext : DbContext
     {
         void AddColumn(string table, string column, string decl)
         {
-            var exists = Database.SqlQueryRaw<int>(
-                $"SELECT COUNT(*) AS \"Value\" FROM pragma_table_info('{table}') WHERE name = '{column}'")
+            var existsSql = $"SELECT COUNT(*) AS \"Value\" FROM pragma_table_info('{table}') WHERE name = '{column}'";
+            var exists = Database.SqlQueryRaw<int>(existsSql)
                 .AsEnumerable().FirstOrDefault();
             if (exists == 0)
-                Database.ExecuteSqlRaw($"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {decl}");
+            {
+                var alterSql = $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {decl}";
+                Database.ExecuteSqlRaw(alterSql);
+            }
+        }
+
+        void RemoveColumn(string table, string column)
+        {
+            var existsSql = $"SELECT COUNT(*) AS \"Value\" FROM pragma_table_info('{table}') WHERE name = '{column}'";
+            var exists = Database.SqlQueryRaw<int>(existsSql)
+                .AsEnumerable().FirstOrDefault();
+            if (exists != 0)
+            {
+                var alterSql = $"ALTER TABLE \"{table}\" DROP COLUMN \"{column}\"";
+                Database.ExecuteSqlRaw(alterSql);
+            }
         }
 
         AddColumn("LithoCodes", "NameRu", "TEXT NULL");
@@ -72,7 +87,10 @@ public class AppDbContext : DbContext
         AddColumn("TextureCodes", "NameRu", "TEXT NULL");
         AddColumn("MineralCodes", "NameRu", "TEXT NULL");
 
+        AddColumn("JournalRows", "MineralCode", "INTEGER NULL");
         AddColumn("JournalRows", "GrainSize", "TEXT NULL");
+        RemoveColumn("JournalRows", "Hardness");
+        RemoveColumn("JournalRows", "CarbonateCo2");
         AddColumn("DescriptionTemplates", "LithoCode", "INTEGER NULL");
         AddColumn("DescriptionTemplates", "ColorCode", "INTEGER NULL");
         AddColumn("DescriptionTemplates", "TextureCode", "INTEGER NULL");
