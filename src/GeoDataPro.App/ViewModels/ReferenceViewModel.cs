@@ -100,11 +100,11 @@ public partial class ReferenceViewModel : ObservableObject
         {
             switch (CurrentKind)
             {
-                case Kind.Litho: Sync(db.LithoCodes, Litho, x => x.Id); break;
-                case Kind.Color: Sync(db.ColorCodes, Colors, x => x.Id); break;
-                case Kind.Texture: Sync(db.TextureCodes, Textures, x => x.Id); break;
-                case Kind.Mineral: Sync(db.MineralCodes, Minerals, x => x.Id); break;
-                case Kind.Description: Sync(db.DescriptionTemplates, Descriptions, x => x.Id); break;
+                case Kind.Litho: Sync(db, db.LithoCodes, Litho, x => x.Id); break;
+                case Kind.Color: Sync(db, db.ColorCodes, Colors, x => x.Id); break;
+                case Kind.Texture: Sync(db, db.TextureCodes, Textures, x => x.Id); break;
+                case Kind.Mineral: Sync(db, db.MineralCodes, Minerals, x => x.Id); break;
+                case Kind.Description: Sync(db, db.DescriptionTemplates, Descriptions, x => x.Id); break;
             }
             db.SaveChanges();
         }
@@ -119,16 +119,22 @@ public partial class ReferenceViewModel : ObservableObject
         AppNotifier.Info("Spravochnik saqlandi.");
     }
 
-    static void Sync<T>(Microsoft.EntityFrameworkCore.DbSet<T> set,
+    static void Sync<T>(AppDbContext db,
+        Microsoft.EntityFrameworkCore.DbSet<T> set,
         System.Collections.Generic.IEnumerable<T> items,
         System.Func<T, int> id) where T : class
     {
         var list = items.ToList();
+        var existing = set.ToList();
+        var existingById = existing.Where(x => id(x) != 0).ToDictionary(id);
         var keep = list.Where(x => id(x) != 0).Select(id).ToHashSet();
-        foreach (var g in set.ToList().Where(e => !keep.Contains(id(e)))) set.Remove(g);
+        foreach (var g in existing.Where(e => !keep.Contains(id(e)))) set.Remove(g);
         foreach (var x in list)
         {
-            if (id(x) == 0) set.Add(x); else set.Update(x);
+            var entityId = id(x);
+            if (entityId == 0) set.Add(x);
+            else if (existingById.TryGetValue(entityId, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(x);
+            else set.Update(x);
         }
     }
 

@@ -83,10 +83,10 @@ public partial class JournalViewModel : ObservableObject
         using var db = new AppDbContext();
         try
         {
-            var existing = db.JournalRows.Where(r => r.WellId == well.Id).ToList();
+            var existingById = db.JournalRows.Where(r => r.WellId == well.Id).ToDictionary(r => r.Id);
             var keepIds = Rows.Where(r => r.Model.Id != 0).Select(r => r.Model.Id).ToHashSet();
 
-            foreach (var gone in existing.Where(e => !keepIds.Contains(e.Id)))
+            foreach (var gone in existingById.Values.Where(e => !keepIds.Contains(e.Id)))
                 db.JournalRows.Remove(gone);
 
             int order = 1;
@@ -97,6 +97,7 @@ public partial class JournalViewModel : ObservableObject
                 m.OrderNo = order++;
                 m.WellId = well.Id;
                 if (m.Id == 0) db.JournalRows.Add(m);
+                else if (existingById.TryGetValue(m.Id, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(m);
                 else db.JournalRows.Update(m);
             }
             db.SaveChanges();

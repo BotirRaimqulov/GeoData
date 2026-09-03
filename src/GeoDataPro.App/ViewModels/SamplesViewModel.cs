@@ -159,14 +159,16 @@ public partial class SamplesViewModel : ObservableObject
         using var db = new AppDbContext();
         try
         {
-            var existing = db.SampleRows.Where(s => s.WellId == well.Id).ToList();
+            var existingById = db.SampleRows.Where(s => s.WellId == well.Id).ToDictionary(s => s.Id);
             var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
-            foreach (var g in existing.Where(e => !keep.Contains(e.Id))) db.SampleRows.Remove(g);
+            foreach (var g in existingById.Values.Where(e => !keep.Contains(e.Id))) db.SampleRows.Remove(g);
             foreach (var r in Rows)
             {
                 r.WellId = well.Id;
                 r.SampleNumber = r.SampleNumber.Trim();
-                if (r.Id == 0) db.SampleRows.Add(r); else db.SampleRows.Update(r);
+                if (r.Id == 0) db.SampleRows.Add(r);
+                else if (existingById.TryGetValue(r.Id, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(r);
+                else db.SampleRows.Update(r);
             }
             db.SaveChanges();
         }
