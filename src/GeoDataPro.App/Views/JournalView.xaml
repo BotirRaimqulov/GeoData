@@ -76,7 +76,7 @@
                             <DataGridTextColumn Header="Interval" Binding="{Binding Interval, StringFormat=N1}" IsReadOnly="True" Width="0.85*" MinWidth="70" />
                             <DataGridTextColumn Header="Kern, m" Binding="{Binding CoreRecoveryM, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="0.85*" MinWidth="70" />
 
-                            <DataGridTemplateColumn Header="Litol. kod" Width="1.3*" MinWidth="110">
+                            <DataGridTemplateColumn Header="Litologiya" Width="1.3*" MinWidth="110">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -90,7 +90,7 @@
                                             <Image Width="26" Height="16" Margin="0,0,6,0" Stretch="Fill"
                                                    Source="{Binding LithoPattern, Converter={StaticResource Pattern}, ConverterParameter=litho}"
                                                    Visibility="{Binding LithoPattern, Converter={StaticResource NullToVis}}" />
-                                            <TextBlock Text="{Binding LithoCode}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding LithoDisplay}" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -115,14 +115,14 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Rang" Width="1.1*" MinWidth="90">
+                            <DataGridTemplateColumn Header="Kern rangi" Width="1.1*" MinWidth="90">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
                                             <Border Width="18" Height="18" CornerRadius="4" Margin="0,0,6,0"
                                                     Background="{Binding ColorHex, Converter={StaticResource HexBrush}}"
                                                     BorderBrush="{StaticResource BorderStrong}" BorderThickness="1" />
-                                            <TextBlock Text="{Binding ColorCode}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding ColorDisplay}" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

@@ -184,7 +184,7 @@ public partial class JournalRowVm : ObservableObject
         get
         {
             var l = RefCache.Instance.Litho4(LithoCode);
-            return l == null ? "" : $"{l.Code}  {l.Name}";
+            return l?.Name ?? "";
         }
     }
     public string? LithoPattern => RefCache.Instance.Litho4(LithoCode)?.PatternKey;
@@ -194,7 +194,7 @@ public partial class JournalRowVm : ObservableObject
         get
         {
             var c = RefCache.Instance.Color4(ColorCode);
-            return c == null ? "" : $"{c.Code}  {c.Name}";
+            return c?.Name ?? "";
         }
     }
     public string ColorHex => RefCache.Instance.Color4(ColorCode)?.HexColor ?? "#00000000";
