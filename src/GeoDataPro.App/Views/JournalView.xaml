@@ -183,7 +183,7 @@
                                 Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}">
                             <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
                         </Border>
-                        <Button Content="Saqlash (Ctrl+S)" Style="{StaticResource PrimaryButton}" FontSize="12"
+                        <Button Content="Saqlash (Ctrl+S)" Style="{StaticResource PrimaryButton}"
                                 Margin="16,0,0,0" Command="{Binding Journal.SaveCommand}"
                                 Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
