@@ -14,8 +14,11 @@ public class CanvasScaleConverter : IMultiValueConverter
     {
         if (values.Length < 2 || values[0] is not double norm || values[1] is not double size || size <= 0)
             return 0d;
+        if (!double.IsFinite(norm) || !double.IsFinite(size))
+            return 0d;
         double usable = Math.Max(size - 2 * Padding, 1);
-        return Padding + norm * usable - 3; // -3 centers the 6px dot
+        var offset = Padding + norm * usable - 3; // -3 centers the 6px dot
+        return double.IsFinite(offset) ? offset : 0d;
     }
 
     public object[] ConvertBack(object value, Type[] t, object? p, CultureInfo c) => throw new NotSupportedException();

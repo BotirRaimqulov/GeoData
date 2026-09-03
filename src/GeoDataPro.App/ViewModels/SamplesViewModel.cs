@@ -149,18 +149,35 @@ public partial class SamplesViewModel : ObservableObject
     {
         var well = _state.CurrentWell;
         if (well == null) return;
-        using var db = new AppDbContext();
-        var existing = db.SampleRows.Where(s => s.WellId == well.Id).ToList();
-        var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
-        foreach (var g in existing.Where(e => !keep.Contains(e.Id))) db.SampleRows.Remove(g);
-        foreach (var r in Rows)
+
+        if (!ValidateRows(out var validationError))
         {
-            r.WellId = well.Id;
-            if (r.Id == 0) db.SampleRows.Add(r); else db.SampleRows.Update(r);
+            AppNotifier.Warn(validationError);
+            return;
         }
-        db.SaveChanges();
+
+        using var db = new AppDbContext();
+        try
+        {
+            var existing = db.SampleRows.Where(s => s.WellId == well.Id).ToList();
+            var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
+            foreach (var g in existing.Where(e => !keep.Contains(e.Id))) db.SampleRows.Remove(g);
+            foreach (var r in Rows)
+            {
+                r.WellId = well.Id;
+                r.SampleNumber = r.SampleNumber.Trim();
+                if (r.Id == 0) db.SampleRows.Add(r); else db.SampleRows.Update(r);
+            }
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Namunalarni saqlab bo'lmadi.", ex);
+            return;
+        }
+
         Recalc();
-        MessageBox.Show("Namunalar saqlandi.", "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+        AppNotifier.Info("Namunalar saqlandi.");
     }
 
     bool FilterRow(object item)
@@ -252,5 +269,35 @@ public partial class SamplesViewModel : ObservableObject
 
             RefreshFilter();
         }
+    }
+
+    bool ValidateRows(out string message)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < Rows.Count; i++)
+        {
+            var row = Rows[i];
+            if (string.IsNullOrWhiteSpace(row.SampleNumber))
+            {
+                message = $"{i + 1}-qatorda namuna raqamini kiriting.";
+                return false;
+            }
+
+            var sampleNumber = row.SampleNumber.Trim();
+            if (!seen.Add(sampleNumber))
+            {
+                message = $"'{sampleNumber}' namuna raqami takrorlangan.";
+                return false;
+            }
+
+            if (row.Bottom <= row.Top)
+            {
+                message = $"{i + 1}-qatorda pastki chuqurlik yuqori chuqurlikdan katta bo'lishi kerak.";
+                return false;
+            }
+        }
+
+        message = string.Empty;
+        return true;
     }
 }
