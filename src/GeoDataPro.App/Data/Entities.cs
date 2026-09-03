@@ -134,18 +134,69 @@ public class JournalRow
 }
 
 /// <summary>Namuna (образец) qatori.</summary>
-public class SampleRow
+public class SampleRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
 {
     public int Id { get; set; }
     public int WellId { get; set; }
     public Well? Well { get; set; }
 
-    public string SampleNumber { get; set; } = "";
-    public int? SampleTypeCode { get; set; }
-    public double Top { get; set; }
-    public double Bottom { get; set; }
-    public string? ZoneName { get; set; }
-    public string? Notes { get; set; }
+    string _sampleNumber = "";
+    int? _sampleTypeCode;
+    double _top;
+    double _bottom;
+    string? _zoneName;
+    string? _notes;
+    int _displayOrder;
+
+    public string SampleNumber
+    {
+        get => _sampleNumber;
+        set => SetProperty(ref _sampleNumber, value);
+    }
+
+    public int? SampleTypeCode
+    {
+        get => _sampleTypeCode;
+        set => SetProperty(ref _sampleTypeCode, value);
+    }
+
+    public double Top
+    {
+        get => _top;
+        set
+        {
+            if (SetProperty(ref _top, value))
+                OnPropertyChanged(nameof(Length));
+        }
+    }
+
+    public double Bottom
+    {
+        get => _bottom;
+        set
+        {
+            if (SetProperty(ref _bottom, value))
+                OnPropertyChanged(nameof(Length));
+        }
+    }
+
+    public string? ZoneName
+    {
+        get => _zoneName;
+        set => SetProperty(ref _zoneName, value);
+    }
+
+    public string? Notes
+    {
+        get => _notes;
+        set => SetProperty(ref _notes, value);
+    }
+
+    public int DisplayOrder
+    {
+        get => _displayOrder;
+        set => SetProperty(ref _displayOrder, value);
+    }
 
     public double Length => System.Math.Round(Bottom - Top, 3);
 }

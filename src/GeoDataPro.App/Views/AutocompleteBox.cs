@@ -63,10 +63,11 @@ public class AutocompleteBox : TextBox
             Foreground = new SolidColorBrush(Color.FromRgb(0x98, 0xA2, 0xB3)),
             IsHitTestVisible = false,
             TextWrapping = TextWrapping.Wrap,
-            Padding = Padding,
             FontSize = FontSize,
             FontFamily = FontFamily,
+            HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
+            Opacity = 0.6,
         };
 
         // ghost'ni TextBox ustiga qo'yish uchun AdornerLayer ishlatamiz
@@ -144,7 +145,8 @@ public class AutocompleteBox : TextBox
     void RefreshSuggestions()
     {
         var typed = Text ?? "";
-        if (_ghost != null) _ghost.Padding = Padding;
+        if (_ghost != null)
+            _ghost.MaxWidth = Math.Max(ActualWidth - Padding.Left - Padding.Right, 0);
 
         if (typed.Length == 0)
         {
@@ -173,7 +175,7 @@ public class AutocompleteBox : TextBox
 
         var inline = matches.FirstOrDefault(s => s.StartsWith(typed, StringComparison.OrdinalIgnoreCase));
         if (inline != null)
-            SetGhost(typed + inline.Substring(typed.Length), isPlaceholder: false);
+            SetGhost(inline.Substring(typed.Length), isPlaceholder: false);
         else
             SetGhost("", isPlaceholder: false);
 
@@ -189,8 +191,26 @@ public class AutocompleteBox : TextBox
     {
         if (_ghost == null) return;
         _ghost.Text = text;
-        _ghost.Opacity = isPlaceholder ? 0.9 : 1;
+        _ghost.Padding = isPlaceholder ? Padding : default;
+        _ghost.Margin = isPlaceholder ? default : SuggestionMargin();
+        _ghost.Opacity = isPlaceholder ? 0.65 : 0.55;
         _ghost.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    Thickness SuggestionMargin()
+    {
+        if (string.IsNullOrEmpty(Text))
+            return new Thickness(Padding.Left, Padding.Top, 0, 0);
+
+        try
+        {
+            var caretRect = GetRectFromCharacterIndex(Text.Length, true);
+            return new Thickness(Padding.Left + Math.Max(caretRect.Left, 0), Padding.Top + Math.Max(caretRect.Top, 0), 0, 0);
+        }
+        catch
+        {
+            return new Thickness(Padding.Left, Padding.Top, 0, 0);
+        }
     }
 
     void OnPreviewKeyDown(object? sender, KeyEventArgs e)

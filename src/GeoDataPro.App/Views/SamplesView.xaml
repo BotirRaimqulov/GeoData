@@ -35,7 +35,7 @@
                           ItemsSource="{Binding SampleTypes}"
                           SelectedValuePath="Code"
                           DisplayMemberPath="Name"
-                          SelectedValue="{Binding SelectedSampleTypeCode}" />
+                          SelectedValue="{Binding SelectedSampleTypeCode, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Content="+  Namuna qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" />
                 <Button Content="🗑  O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" />
                 <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" />
@@ -43,15 +43,14 @@
         </Grid>
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
-            <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}" BorderThickness="0">
+            <DataGrid ItemsSource="{Binding FilteredRows}" SelectedItem="{Binding Selected}" BorderThickness="0">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Tartib raqam" Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Width="100" />
+                    <DataGridTextColumn Header="Tartib raqam" Binding="{Binding DisplayOrder}" IsReadOnly="True" Width="100" />
                     <DataGridTextColumn Header="Namuna raqami" Binding="{Binding SampleNumber, UpdateSourceTrigger=PropertyChanged}" Width="160" />
                     <DataGridTextColumn Header="Namuna turi kodi" Binding="{Binding SampleTypeCode, UpdateSourceTrigger=PropertyChanged}" Width="140" />
                     <DataGridTextColumn Header="TOP (m)" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="120" />
                     <DataGridTextColumn Header="BOTTOM (m)" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="120" />
                     <DataGridTextColumn Header="Uzunlik (m)" Binding="{Binding Length, StringFormat=N1}" IsReadOnly="True" Width="120" />
-                    <DataGridTextColumn Header="Izoh" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
