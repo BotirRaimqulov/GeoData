@@ -61,8 +61,17 @@ public partial class WellsViewModel : ObservableObject
         var name = Views.PromptDialog.Ask("Yangi loyiha nomi:", "Loyiha qo'shish", "Loyiha-yangi");
         if (string.IsNullOrWhiteSpace(name)) return;
         using var db = new AppDbContext();
-        db.Projects.Add(new Project { Name = name.Trim() });
-        db.SaveChanges();
+        try
+        {
+            db.Projects.Add(new Project { Name = name.Trim() });
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Loyihani saqlab bo'lmadi.", ex);
+            return;
+        }
+
         Load();
         _state.Reload();
     }
@@ -74,8 +83,17 @@ public partial class WellsViewModel : ObservableObject
         var num = Views.PromptDialog.Ask("Yangi quduq raqami:", "Quduq qo'shish", "0000");
         if (string.IsNullOrWhiteSpace(num)) return;
         using var db = new AppDbContext();
-        db.Wells.Add(new Well { ProjectId = SelectedProject.Id, Number = num.Trim() });
-        db.SaveChanges();
+        try
+        {
+            db.Wells.Add(new Well { ProjectId = SelectedProject.Id, Number = num.Trim() });
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Quduqni saqlab bo'lmadi.", ex);
+            return;
+        }
+
         LoadWells();
         _state.Reload(SelectedProject.Id);
     }
@@ -84,20 +102,43 @@ public partial class WellsViewModel : ObservableObject
     void SaveWell()
     {
         if (SelectedWell == null) return;
+
+        if (string.IsNullOrWhiteSpace(SelectedWell.Number))
+        {
+            AppNotifier.Warn("Quduq raqamini kiriting.");
+            return;
+        }
+
+        if (SelectedWell.StartDepth.HasValue && SelectedWell.EndDepth.HasValue &&
+            SelectedWell.EndDepth.Value < SelectedWell.StartDepth.Value)
+        {
+            AppNotifier.Warn("Tugatish chuqurligi boshlanish chuqurligidan kichik bo'lmasligi kerak.");
+            return;
+        }
+
         using var db = new AppDbContext();
         var w = db.Wells.Find(SelectedWell.Model.Id);
         if (w == null) return;
-        w.Number = SelectedWell.Number;
-        w.RigNumber = SelectedWell.RigNumber;
-        w.StartDepth = SelectedWell.StartDepth;
-        w.EndDepth = SelectedWell.EndDepth;
-        w.StartDate = SelectedWell.StartDate;
-        w.EndDate = SelectedWell.EndDate;
-        w.Geologist = SelectedWell.Geologist;
-        db.SaveChanges();
+        try
+        {
+            w.Number = SelectedWell.Number.Trim();
+            w.RigNumber = SelectedWell.RigNumber;
+            w.StartDepth = SelectedWell.StartDepth;
+            w.EndDepth = SelectedWell.EndDepth;
+            w.StartDate = SelectedWell.StartDate;
+            w.EndDate = SelectedWell.EndDate;
+            w.Geologist = SelectedWell.Geologist;
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Quduqni saqlab bo'lmadi.", ex);
+            return;
+        }
+
         LoadWells();
         _state.Reload(SelectedProject?.Id, w.Id);
-        MessageBox.Show("Quduq saqlandi.", "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+        AppNotifier.Info("Quduq saqlandi.");
     }
 
     [RelayCommand]
@@ -113,7 +154,16 @@ public partial class WellsViewModel : ObservableObject
         db.SrpRows.RemoveRange(db.SrpRows.Where(r => r.WellId == id));
         var w = db.Wells.Find(id);
         if (w != null) db.Wells.Remove(w);
-        db.SaveChanges();
+        try
+        {
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Quduqni o'chirib bo'lmadi.", ex);
+            return;
+        }
+
         LoadWells();
         _state.Reload(SelectedProject?.Id);
     }

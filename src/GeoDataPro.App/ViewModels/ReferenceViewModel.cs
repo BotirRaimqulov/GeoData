@@ -89,19 +89,34 @@ public partial class ReferenceViewModel : ObservableObject
     [RelayCommand]
     void Save()
     {
-        using var db = new AppDbContext();
-        switch (CurrentKind)
+        if (!Validate(out var validationError))
         {
-            case Kind.Litho: Sync(db.LithoCodes, Litho, x => x.Id); break;
-            case Kind.Color: Sync(db.ColorCodes, Colors, x => x.Id); break;
-            case Kind.Texture: Sync(db.TextureCodes, Textures, x => x.Id); break;
-            case Kind.Mineral: Sync(db.MineralCodes, Minerals, x => x.Id); break;
-            case Kind.Description: Sync(db.DescriptionTemplates, Descriptions, x => x.Id); break;
+            AppNotifier.Warn(validationError);
+            return;
         }
-        db.SaveChanges();
+
+        using var db = new AppDbContext();
+        try
+        {
+            switch (CurrentKind)
+            {
+                case Kind.Litho: Sync(db.LithoCodes, Litho, x => x.Id); break;
+                case Kind.Color: Sync(db.ColorCodes, Colors, x => x.Id); break;
+                case Kind.Texture: Sync(db.TextureCodes, Textures, x => x.Id); break;
+                case Kind.Mineral: Sync(db.MineralCodes, Minerals, x => x.Id); break;
+                case Kind.Description: Sync(db.DescriptionTemplates, Descriptions, x => x.Id); break;
+            }
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Spravochnikni saqlab bo'lmadi.", ex);
+            return;
+        }
+
         RefCache.Instance.Reload();
         AppState.Instance.RaiseDataChanged();
-        MessageBox.Show("Spravochnik saqlandi.", "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+        AppNotifier.Info("Spravochnik saqlandi.");
     }
 
     static void Sync<T>(Microsoft.EntityFrameworkCore.DbSet<T> set,
@@ -115,5 +130,52 @@ public partial class ReferenceViewModel : ObservableObject
         {
             if (id(x) == 0) set.Add(x); else set.Update(x);
         }
+    }
+
+    bool Validate(out string message)
+    {
+        switch (CurrentKind)
+        {
+            case Kind.Litho:
+                return ValidateCodes(Litho.Select(x => (x.Code, x.Name)), "litologik kod", out message);
+            case Kind.Color:
+                return ValidateCodes(Colors.Select(x => (x.Code, x.Name)), "rang kodi", out message);
+            case Kind.Texture:
+                return ValidateCodes(Textures.Select(x => (x.Code, x.Name)), "tekstura kodi", out message);
+            case Kind.Mineral:
+                return ValidateCodes(Minerals.Select(x => (x.Code, x.Name)), "mineral kodi", out message);
+            case Kind.Description:
+                if (Descriptions.Any(x => string.IsNullOrWhiteSpace(x.Text)))
+                {
+                    message = "Tavsif shabloni matnini bo'sh qoldirmang.";
+                    return false;
+                }
+                break;
+        }
+
+        message = string.Empty;
+        return true;
+    }
+
+    static bool ValidateCodes(System.Collections.Generic.IEnumerable<(int Code, string Name)> items, string label, out string message)
+    {
+        var seen = new HashSet<int>();
+        foreach (var item in items)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                message = $"{label} nomini bo'sh qoldirmang.";
+                return false;
+            }
+
+            if (!seen.Add(item.Code))
+            {
+                message = $"{item.Code} {label} takrorlangan.";
+                return false;
+            }
+        }
+
+        message = string.Empty;
+        return true;
     }
 }

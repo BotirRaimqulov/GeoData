@@ -80,8 +80,17 @@ public partial class MainViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(name)) return;
         using var db = new AppDbContext();
         var well = new Well { ProjectId = project.Id, Number = name.Trim() };
-        db.Wells.Add(well);
-        db.SaveChanges();
+        try
+        {
+            db.Wells.Add(well);
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Quduqni saqlab bo'lmadi.", ex);
+            return;
+        }
+
         State.Reload(project.Id, well.Id);
         Wells.Load();
     }
@@ -97,9 +106,9 @@ public partial class MainViewModel : ObservableObject
         try
         {
             int j = 0, s = 0, k = 0;
-            try { j = ExcelService.ImportJournal(dlg.FileName, well.Id); } catch { }
-            try { s = ExcelService.ImportSamples(dlg.FileName, well.Id); } catch { }
-            try { k = ExcelService.ImportSrp(dlg.FileName, well.Id, well.Number); } catch { }
+            try { j = ExcelService.ImportJournal(dlg.FileName, well.Id); } catch (Exception ex) { AppNotifier.Error(ex.Message, ex.InnerException ?? ex); }
+            try { s = ExcelService.ImportSamples(dlg.FileName, well.Id); } catch (Exception ex) { AppNotifier.Error(ex.Message, ex.InnerException ?? ex); }
+            try { k = ExcelService.ImportSrp(dlg.FileName, well.Id, well.Number); } catch (Exception ex) { AppNotifier.Error(ex.Message, ex.InnerException ?? ex); }
             Journal.Load(); Samples.Load(); Srp.Load();
             MessageBox.Show($"Import tugadi:\n  Dala jurnali: {j} qator\n  Namuna: {s} qator\n  SRP: {k} nuqta",
                 "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);

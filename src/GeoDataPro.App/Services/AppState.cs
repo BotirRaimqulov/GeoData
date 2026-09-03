@@ -27,9 +27,11 @@ public partial class AppState : ObservableObject
         CurrentWell = CurrentWells.FirstOrDefault();
     }
 
-    partial void OnCurrentWellChanged(Well? value) => WellChanged?.Invoke();
+    partial void OnCurrentWellChanged(Well? value) =>
+        RaiseSafely(WellChanged, "Quduq ma'lumotlarini yuklashda xato yuz berdi. Ayrim bo'limlar yangilanmagan bo'lishi mumkin.");
 
-    public void RaiseDataChanged() => DataChanged?.Invoke();
+    public void RaiseDataChanged() =>
+        RaiseSafely(DataChanged, "Ma'lumotlarni yangilashda xato yuz berdi.");
 
     public void Reload(int? keepProjectId = null, int? keepWellId = null)
     {
@@ -47,5 +49,28 @@ public partial class AppState : ObservableObject
 
         if (keepWellId is int wid)
             CurrentWell = CurrentProject?.Wells.FirstOrDefault(w => w.Id == wid) ?? CurrentWells.FirstOrDefault();
+    }
+
+    static void RaiseSafely(Action? handlers, string message)
+    {
+        if (handlers == null) return;
+
+        Exception? firstError = null;
+        foreach (Action handler in handlers.GetInvocationList())
+        {
+            try
+            {
+                handler();
+            }
+            catch (Exception ex)
+            {
+                firstError ??= ex;
+                AppNotifier.LogException(ex,
+                    $"{handler.Method.DeclaringType?.FullName ?? "Unknown"}.{handler.Method.Name}");
+            }
+        }
+
+        if (firstError != null)
+            AppNotifier.Error(message, firstError);
     }
 }

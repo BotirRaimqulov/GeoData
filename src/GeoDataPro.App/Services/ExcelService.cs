@@ -13,37 +13,46 @@ public static class ExcelService
     // -------- Dala jurnali --------
     public static int ImportJournal(string path, int wellId)
     {
-        using var wb = new XLWorkbook(path);
-        var ws = wb.Worksheets.FirstOrDefault(s =>
-            s.Name.Contains("Dala", StringComparison.OrdinalIgnoreCase) ||
-            s.Name.Contains("jurnal", StringComparison.OrdinalIgnoreCase)) ?? wb.Worksheet(1);
-
-        using var db = new AppDbContext();
-        db.JournalRows.RemoveRange(db.JournalRows.Where(r => r.WellId == wellId));
-        db.SaveChanges();
-
-        int order = 1, added = 0;
-        foreach (var row in ws.RowsUsed().Skip(2)) // header + unit row
+        try
         {
-            var top = row.Cell(2).GetValue<double?>();
-            var bot = row.Cell(3).GetValue<double?>();
-            if (top is null || bot is null) continue;
-            db.JournalRows.Add(new JournalRow
+            using var wb = new XLWorkbook(path);
+            var ws = wb.Worksheets.FirstOrDefault(s =>
+                s.Name.Contains("Dala", StringComparison.OrdinalIgnoreCase) ||
+                s.Name.Contains("jurnal", StringComparison.OrdinalIgnoreCase)) ?? wb.Worksheet(1);
+
+            using var db = new AppDbContext();
+            using var tx = db.Database.BeginTransaction();
+            db.JournalRows.RemoveRange(db.JournalRows.Where(r => r.WellId == wellId));
+
+            int order = 1, added = 0;
+            foreach (var row in ws.RowsUsed().Skip(2)) // header + unit row
             {
-                WellId = wellId,
-                OrderNo = order++,
-                Top = top.Value,
-                Bottom = bot.Value,
-                CoreRecoveryM = row.Cell(4).GetValue<double?>() ?? 0,
-                ZoneName = row.Cell(5).GetString().Trim().NullIfEmpty(),
-                LithoCode = row.Cell(6).GetValue<int?>(),
-                ColorCode = row.Cell(7).GetValue<int?>(),
-                Description = row.Cell(8).GetString().Trim().NullIfEmpty(),
-            });
-            added++;
+                var top = row.Cell(2).GetValue<double?>();
+                var bot = row.Cell(3).GetValue<double?>();
+                if (top is null || bot is null) continue;
+                db.JournalRows.Add(new JournalRow
+                {
+                    WellId = wellId,
+                    OrderNo = order++,
+                    Top = top.Value,
+                    Bottom = bot.Value,
+                    CoreRecoveryM = row.Cell(4).GetValue<double?>() ?? 0,
+                    ZoneName = row.Cell(5).GetString().Trim().NullIfEmpty(),
+                    LithoCode = row.Cell(6).GetValue<int?>(),
+                    ColorCode = row.Cell(7).GetValue<int?>(),
+                    Description = row.Cell(8).GetString().Trim().NullIfEmpty(),
+                });
+                added++;
+            }
+
+            db.SaveChanges();
+            tx.Commit();
+            return added;
         }
-        db.SaveChanges();
-        return added;
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Dala jurnali importida xato yuz berdi.", ex);
+        }
     }
 
     public static void ExportJournal(string path, Well well, IEnumerable<JournalRow> rows)
@@ -75,22 +84,30 @@ public static class ExcelService
     // -------- SRP (Core_GK) --------
     public static int ImportSrp(string path, int wellId, string wellNumber)
     {
-        using var wb = new XLWorkbook(path);
-        var ws = wb.Worksheets.FirstOrDefault(s => s.Name.Contains("SRP", StringComparison.OrdinalIgnoreCase)) ?? wb.Worksheet(1);
-        using var db = new AppDbContext();
-        db.SrpRows.RemoveRange(db.SrpRows.Where(r => r.WellId == wellId));
-        db.SaveChanges();
-        int added = 0;
-        foreach (var row in ws.RowsUsed().Skip(2))
+        try
         {
-            var md = row.Cell(2).GetValue<double?>();
-            var gk = row.Cell(3).GetValue<double?>();
-            if (md is null || gk is null) continue;
-            db.SrpRows.Add(new SrpRow { WellId = wellId, Md = md.Value, CoreGk = gk.Value });
-            added++;
+            using var wb = new XLWorkbook(path);
+            var ws = wb.Worksheets.FirstOrDefault(s => s.Name.Contains("SRP", StringComparison.OrdinalIgnoreCase)) ?? wb.Worksheet(1);
+            using var db = new AppDbContext();
+            using var tx = db.Database.BeginTransaction();
+            db.SrpRows.RemoveRange(db.SrpRows.Where(r => r.WellId == wellId));
+            int added = 0;
+            foreach (var row in ws.RowsUsed().Skip(2))
+            {
+                var md = row.Cell(2).GetValue<double?>();
+                var gk = row.Cell(3).GetValue<double?>();
+                if (md is null || gk is null) continue;
+                db.SrpRows.Add(new SrpRow { WellId = wellId, Md = md.Value, CoreGk = gk.Value });
+                added++;
+            }
+            db.SaveChanges();
+            tx.Commit();
+            return added;
         }
-        db.SaveChanges();
-        return added;
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("SRP importida xato yuz berdi.", ex);
+        }
     }
 
     public static void ExportSrp(string path, Well well, IEnumerable<SrpRow> rows)
@@ -115,27 +132,35 @@ public static class ExcelService
     // -------- Namuna --------
     public static int ImportSamples(string path, int wellId)
     {
-        using var wb = new XLWorkbook(path);
-        var ws = wb.Worksheets.FirstOrDefault(s => s.Name.Contains("Namuna", StringComparison.OrdinalIgnoreCase)) ?? wb.Worksheet(1);
-        using var db = new AppDbContext();
-        db.SampleRows.RemoveRange(db.SampleRows.Where(r => r.WellId == wellId));
-        db.SaveChanges();
-        int added = 0;
-        foreach (var row in ws.RowsUsed().Skip(2))
+        try
         {
-            var num = row.Cell(2).GetString().Trim();
-            var top = row.Cell(3).GetValue<double?>();
-            var bot = row.Cell(4).GetValue<double?>();
-            if (string.IsNullOrWhiteSpace(num) || top is null || bot is null) continue;
-            db.SampleRows.Add(new SampleRow
+            using var wb = new XLWorkbook(path);
+            var ws = wb.Worksheets.FirstOrDefault(s => s.Name.Contains("Namuna", StringComparison.OrdinalIgnoreCase)) ?? wb.Worksheet(1);
+            using var db = new AppDbContext();
+            using var tx = db.Database.BeginTransaction();
+            db.SampleRows.RemoveRange(db.SampleRows.Where(r => r.WellId == wellId));
+            int added = 0;
+            foreach (var row in ws.RowsUsed().Skip(2))
             {
-                WellId = wellId, SampleNumber = num, Top = top.Value, Bottom = bot.Value,
-                ZoneName = row.Cell(6).GetString().Trim().NullIfEmpty(),
-            });
-            added++;
+                var num = row.Cell(2).GetString().Trim();
+                var top = row.Cell(3).GetValue<double?>();
+                var bot = row.Cell(4).GetValue<double?>();
+                if (string.IsNullOrWhiteSpace(num) || top is null || bot is null) continue;
+                db.SampleRows.Add(new SampleRow
+                {
+                    WellId = wellId, SampleNumber = num, Top = top.Value, Bottom = bot.Value,
+                    ZoneName = row.Cell(6).GetString().Trim().NullIfEmpty(),
+                });
+                added++;
+            }
+            db.SaveChanges();
+            tx.Commit();
+            return added;
         }
-        db.SaveChanges();
-        return added;
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Namuna importida xato yuz berdi.", ex);
+        }
     }
 
     public static void ExportSamples(string path, Well well, IEnumerable<SampleRow> rows)

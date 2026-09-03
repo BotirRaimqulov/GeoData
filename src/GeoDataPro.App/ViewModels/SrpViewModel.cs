@@ -53,7 +53,10 @@ public partial class SrpViewModel : ObservableObject
         if (Rows.Count < 2) { OnPropertyChanged(nameof(Chart)); return; }
         double minMd = Rows.Min(r => r.Md), maxMd = Rows.Max(r => r.Md);
         double minV = Rows.Min(r => r.CoreGk), maxV = Rows.Max(r => r.CoreGk);
-        double spanMd = maxMd - minMd, spanV = Math.Max(maxV - minV, 0.001);
+        double spanMd = maxMd - minMd;
+        double spanV = maxV - minV;
+        if (!double.IsFinite(spanMd) || spanMd <= 0) spanMd = 1;
+        if (!double.IsFinite(spanV) || spanV <= 0) spanV = 1;
         foreach (var r in Rows.OrderBy(r => r.Md))
             Chart.Add(new GkPoint
             {
@@ -88,18 +91,50 @@ public partial class SrpViewModel : ObservableObject
     {
         var well = _state.CurrentWell;
         if (well == null) return;
-        using var db = new AppDbContext();
-        var existing = db.SrpRows.Where(s => s.WellId == well.Id).ToList();
-        var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
-        foreach (var g in existing.Where(e => !keep.Contains(e.Id))) db.SrpRows.Remove(g);
-        foreach (var r in Rows)
+
+        if (!ValidateRows(out var validationError))
         {
-            r.WellId = well.Id;
-            if (r.Id == 0) db.SrpRows.Add(r); else db.SrpRows.Update(r);
+            AppNotifier.Warn(validationError);
+            return;
         }
-        db.SaveChanges();
+
+        using var db = new AppDbContext();
+        try
+        {
+            var existing = db.SrpRows.Where(s => s.WellId == well.Id).ToList();
+            var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
+            foreach (var g in existing.Where(e => !keep.Contains(e.Id))) db.SrpRows.Remove(g);
+            foreach (var r in Rows)
+            {
+                r.WellId = well.Id;
+                if (r.Id == 0) db.SrpRows.Add(r); else db.SrpRows.Update(r);
+            }
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("SRP ma'lumotlarini saqlab bo'lmadi.", ex);
+            return;
+        }
+
         Recalc();
-        MessageBox.Show("SRP ma'lumotlari saqlandi.", "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+        AppNotifier.Info("SRP ma'lumotlari saqlandi.");
+    }
+
+    bool ValidateRows(out string message)
+    {
+        for (int i = 0; i < Rows.Count; i++)
+        {
+            var row = Rows[i];
+            if (!double.IsFinite(row.Md) || !double.IsFinite(row.CoreGk))
+            {
+                message = $"{i + 1}-qatorda faqat haqiqiy son qiymatlarini kiriting.";
+                return false;
+            }
+        }
+
+        message = string.Empty;
+        return true;
     }
 }
 

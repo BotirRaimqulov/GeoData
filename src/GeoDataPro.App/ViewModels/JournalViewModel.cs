@@ -73,23 +73,40 @@ public partial class JournalViewModel : ObservableObject
     {
         var well = _state.CurrentWell;
         if (well == null) return;
-        using var db = new AppDbContext();
-        var existing = db.JournalRows.Where(r => r.WellId == well.Id).ToList();
-        var keepIds = Rows.Where(r => r.Model.Id != 0).Select(r => r.Model.Id).ToHashSet();
 
-        foreach (var gone in existing.Where(e => !keepIds.Contains(e.Id)))
-            db.JournalRows.Remove(gone);
-
-        int order = 1;
-        foreach (var vm in Rows)
+        if (!ValidateRows(out var validationError))
         {
-            var m = vm.Model;
-            m.OrderNo = order++;
-            m.WellId = well.Id;
-            if (m.Id == 0) db.JournalRows.Add(m);
-            else db.JournalRows.Update(m);
+            AppNotifier.Warn(validationError);
+            return;
         }
-        db.SaveChanges();
+
+        using var db = new AppDbContext();
+        try
+        {
+            var existing = db.JournalRows.Where(r => r.WellId == well.Id).ToList();
+            var keepIds = Rows.Where(r => r.Model.Id != 0).Select(r => r.Model.Id).ToHashSet();
+
+            foreach (var gone in existing.Where(e => !keepIds.Contains(e.Id)))
+                db.JournalRows.Remove(gone);
+
+            int order = 1;
+            foreach (var vm in Rows)
+            {
+                var m = vm.Model;
+                m.ZoneName = string.IsNullOrWhiteSpace(m.ZoneName) ? null : m.ZoneName.Trim();
+                m.OrderNo = order++;
+                m.WellId = well.Id;
+                if (m.Id == 0) db.JournalRows.Add(m);
+                else db.JournalRows.Update(m);
+            }
+            db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Dala jurnalini saqlab bo'lmadi.", ex);
+            return;
+        }
+
         foreach (var vm in Rows) vm.ClearDirty();
         HasUnsaved = false;
         _state.RaiseDataChanged();
@@ -203,6 +220,37 @@ public partial class JournalViewModel : ObservableObject
             });
         }
         OnPropertyChanged(nameof(Profile));
+    }
+
+    bool ValidateRows(out string message)
+    {
+        JournalRowVm? previous = null;
+        for (int i = 0; i < Rows.Count; i++)
+        {
+            var row = Rows[i];
+            if (row.Bottom <= row.Top)
+            {
+                message = $"{i + 1}-qatorda pastki chuqurlik yuqori chuqurlikdan katta bo'lishi kerak.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(row.ZoneName))
+            {
+                message = $"{i + 1}-qatorda zona nomini kiriting.";
+                return false;
+            }
+
+            if (previous != null && row.Top < previous.Bottom)
+            {
+                message = "Dala jurnali qatorlari chuqurlik bo'yicha tartibli va kesishmasdan bo'lishi kerak.";
+                return false;
+            }
+
+            previous = row;
+        }
+
+        message = string.Empty;
+        return true;
     }
 }
 
