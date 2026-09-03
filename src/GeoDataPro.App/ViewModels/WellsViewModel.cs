@@ -18,6 +18,11 @@ public partial class WellsViewModel : ObservableObject
     [ObservableProperty] private Project? _selectedProject;
     [ObservableProperty] private WellListItem? _selectedWell;
 
+    public int ProjectCount => Projects.Count;
+    public int WellCount => Wells.Count;
+    public int TotalJournalCount => Wells.Sum(x => x.JournalCount);
+    public int TotalSampleCount => Wells.Sum(x => x.SampleCount);
+
     public WellsViewModel()
     {
         _state.DataChanged += Load;
@@ -32,6 +37,7 @@ public partial class WellsViewModel : ObservableObject
         using var db = new AppDbContext();
         foreach (var p in db.Projects.OrderBy(p => p.Name)) Projects.Add(p);
         SelectedProject = Projects.FirstOrDefault(p => p.Id == _state.CurrentProject?.Id) ?? Projects.FirstOrDefault();
+        RaiseStatsChanged();
     }
 
     void LoadWells()
@@ -46,6 +52,7 @@ public partial class WellsViewModel : ObservableObject
             int sr = db.SampleRows.Count(r => r.WellId == w.Id);
             Wells.Add(new WellListItem(w) { JournalCount = jr, SampleCount = sr });
         }
+        RaiseStatsChanged();
     }
 
     [RelayCommand]
@@ -109,6 +116,14 @@ public partial class WellsViewModel : ObservableObject
         db.SaveChanges();
         LoadWells();
         _state.Reload(SelectedProject?.Id);
+    }
+
+    void RaiseStatsChanged()
+    {
+        OnPropertyChanged(nameof(ProjectCount));
+        OnPropertyChanged(nameof(WellCount));
+        OnPropertyChanged(nameof(TotalJournalCount));
+        OnPropertyChanged(nameof(TotalSampleCount));
     }
 }
 

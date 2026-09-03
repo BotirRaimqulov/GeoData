@@ -9,38 +9,47 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,14">
-            <StackPanel Orientation="Horizontal">
-                <StackPanel Margin="0,0,16,0">
-                    <TextBlock Text="Loyiha" Style="{StaticResource FieldLabel}" />
-                    <ComboBox Width="180" DisplayMemberPath="Name"
-                              ItemsSource="{Binding DataContext.State.Projects, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              SelectedItem="{Binding DataContext.State.CurrentProject, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                </StackPanel>
-                <StackPanel Margin="0,0,16,0">
-                    <TextBlock Text="Quduq" Style="{StaticResource FieldLabel}" />
-                    <StackPanel Orientation="Horizontal">
-                        <ComboBox Width="140" DisplayMemberPath="Number"
-                                  ItemsSource="{Binding DataContext.State.CurrentWells, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  SelectedItem="{Binding DataContext.State.CurrentWell, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        <Button Content="+" Style="{StaticResource GhostButton}" Padding="10,3" Margin="6,0,0,0"
-                                ToolTip="Yangi quduq qo'shish"
-                                Command="{Binding DataContext.AddWellCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+        <Border Grid.Row="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="Loyiha" Style="{StaticResource FieldLabel}" />
+                        <ComboBox Width="220" DisplayMemberPath="Name"
+                                  ItemsSource="{Binding DataContext.State.Projects, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  SelectedItem="{Binding DataContext.State.CurrentProject, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Quduq" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox Width="170" DisplayMemberPath="Number"
+                                      ItemsSource="{Binding DataContext.State.CurrentWells, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      SelectedItem="{Binding DataContext.State.CurrentWell, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            <Button Content="+" Style="{StaticResource IconButton}" Margin="8,2,0,2"
+                                    ToolTip="Yangi quduq qo'shish"
+                                    Command="{Binding DataContext.AddWellCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                <ComboBox Width="250" Margin="0,0,8,0"
-                          ItemsSource="{Binding SampleTypes}"
-                          SelectedValuePath="Code"
-                          DisplayMemberPath="Name"
-                          SelectedValue="{Binding SelectedSampleTypeCode, UpdateSourceTrigger=PropertyChanged}" />
-                <Button Content="+  Namuna qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" />
-                <Button Content="🗑  O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" />
-                <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" />
-            </StackPanel>
-        </Grid>
+                <StackPanel Grid.Column="1" Margin="20,0,16,0">
+                    <TextBlock Text="Namuna turi" Style="{StaticResource FieldLabel}" />
+                    <ComboBox Width="250"
+                              ItemsSource="{Binding SampleTypes}"
+                              SelectedValuePath="Code"
+                              DisplayMemberPath="Name"
+                              SelectedValue="{Binding SelectedSampleTypeCode, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="+  Namuna qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" />
+                    <Button Content="O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" />
+                    <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
             <DataGrid ItemsSource="{Binding FilteredRows}" SelectedItem="{Binding Selected}" BorderThickness="0">

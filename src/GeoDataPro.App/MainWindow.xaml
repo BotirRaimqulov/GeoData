@@ -19,42 +19,31 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="248" />
+            <ColumnDefinition Width="264" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ================= Sidebar ================= -->
         <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,0,1,0">
             <DockPanel>
-                <!-- Brand -->
-                <Border DockPanel.Dock="Top" Height="64" Padding="22,0" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,0,0,1">
+                <Border DockPanel.Dock="Top" Height="72" Padding="24,0" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,0,0,1">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Assets/AppLogo.png" Width="32" Height="32" Stretch="Uniform" Margin="0,0,11,0"
+                        <Image Source="Assets/AppLogo.png" Width="34" Height="34" Stretch="Uniform" Margin="0,0,12,0"
                                RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True" />
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="GeoData Pro" FontSize="15" FontWeight="SemiBold" />
-                            <TextBlock Text="Geologik dala jurnali" FontSize="10" Foreground="{StaticResource TextMuted}" Margin="0,1,0,0" />
+                            <TextBlock Text="GeoData Pro" FontSize="16" FontWeight="SemiBold" />
+                            <TextBlock Text="Geologik boshqaruv paneli" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <!-- Footer -->
-                <Border DockPanel.Dock="Bottom" Padding="22,12" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,1,0,0">
+                <Border DockPanel.Dock="Bottom" Padding="24,14" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,1,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <!-- Haqiqiy foydalanuvchi profili (login) tayyor bo'lmagani uchun mock "GA" avatar va
-                             quduq geologi nomi vaqtincha yashirilgan:
-                        <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource AccentSoft}" Margin="0,0,10,0">
-                            <TextBlock Text="GA" Foreground="{StaticResource AccentDark}" FontSize="11" FontWeight="SemiBold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <TextBlock Text="{Binding State.CurrentWell.Geologist, TargetNullValue='Geolog'}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
-                        -->
-                        <TextBlock Text="{Binding Version}" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Version}" FontSize="11" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" />
                     </StackPanel>
                 </Border>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="0,4,0,8">
+                    <StackPanel Margin="0,8,0,12">
                         <TextBlock Text="MA'LUMOT KIRITISH" Style="{StaticResource NavHeader}" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="▤" Content="Dala jurnali"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=journal}"
@@ -83,8 +72,8 @@
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=descriptions}"
                                      Command="{Binding NavigateCommand}" CommandParameter="descriptions" />
 
-                        <TextBlock Text="QUDUQLAR" Style="{StaticResource NavHeader}" />
-                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◎" Content="Quduqlar"
+                        <TextBlock Text="BOSHQARUV" Style="{StaticResource NavHeader}" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◎" Content="Loyiha va quduqlar"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=wells}"
                                      Command="{Binding NavigateCommand}" CommandParameter="wells" />
 
@@ -97,11 +86,8 @@
             </DockPanel>
         </Border>
 
-        <!-- ================= Main area ================= -->
         <DockPanel Grid.Column="1">
-
-            <!-- Header -->
-            <Border DockPanel.Dock="Top" Height="72" Background="{StaticResource HeaderBg}"
+            <Border DockPanel.Dock="Top" Height="56" Background="{StaticResource HeaderBg}"
                     BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Padding="24,0">
                 <Grid>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -113,26 +99,11 @@
                         <TextBlock Text="Quduq:" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding State.CurrentWell.Number}" FontWeight="SemiBold" Foreground="{StaticResource AccentDark}" VerticalAlignment="Center" />
                     </StackPanel>
-
-                    <!-- Haqiqiy foydalanuvchi profili (login) tayyor bo'lmagani uchun mock "GA" avatar va
-                         quduq geologi nomi vaqtincha yashirilgan:
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <StackPanel Margin="0,0,12,0" VerticalAlignment="Center" HorizontalAlignment="Right">
-                            <TextBlock Text="Geolog" Style="{StaticResource Caption}" HorizontalAlignment="Right" />
-                            <TextBlock Text="{Binding State.CurrentWell.Geologist, TargetNullValue='—'}" FontWeight="SemiBold" HorizontalAlignment="Right" />
-                        </StackPanel>
-                        <Border Width="38" Height="38" CornerRadius="19" Background="{StaticResource AccentSoft}">
-                            <TextBlock Text="GA" Foreground="{StaticResource AccentDark}" FontWeight="SemiBold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </StackPanel>
-                    -->
                 </Grid>
             </Border>
 
-            <!-- Status bar -->
-            <Border DockPanel.Dock="Bottom" Height="30" Background="{StaticResource HeaderBg}"
-                    BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="16,0">
+            <Border DockPanel.Dock="Bottom" Height="36" Background="{StaticResource HeaderBg}"
+                    BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="18,0">
                 <Grid>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="{Binding Version}" Foreground="{StaticResource TextMuted}" FontSize="11" />
@@ -148,7 +119,6 @@
                 </Grid>
             </Border>
 
-            <!-- Content switcher -->
             <Grid>
                 <v:JournalView   Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=journal}" />
                 <v:SamplesView   Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=samples}" />
