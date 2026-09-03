@@ -140,7 +140,8 @@ public class SampleRow
     public int WellId { get; set; }
     public Well? Well { get; set; }
 
-    public long SampleNumber { get; set; }
+    public string SampleNumber { get; set; } = "";
+    public int? SampleTypeCode { get; set; }
     public double Top { get; set; }
     public double Bottom { get; set; }
     public string? ZoneName { get; set; }

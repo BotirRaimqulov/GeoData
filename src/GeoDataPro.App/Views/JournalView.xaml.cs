@@ -29,7 +29,32 @@ public partial class JournalView : UserControl
     void Grid_PreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
     {
         if (e.EditingElement is ComboBox combo)
-            combo.Dispatcher.BeginInvoke(new Action(() => combo.IsDropDownOpen = true), DispatcherPriority.Input);
+            OpenCombo(combo);
+    }
+
+    void EditCombo_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (sender is ComboBox combo)
+            OpenCombo(combo);
+    }
+
+    void EditCombo_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ComboBox combo && !combo.IsDropDownOpen)
+        {
+            combo.Focus();
+            OpenCombo(combo);
+            e.Handled = true;
+        }
+    }
+
+    static void OpenCombo(ComboBox combo)
+    {
+        combo.Dispatcher.BeginInvoke(new Action(() =>
+        {
+            combo.IsDropDownOpen = true;
+            combo.MaxDropDownHeight = 320;
+        }), DispatcherPriority.Input);
     }
 
     // ==================== Kern tavsifi: so'z tanlansa muqobil variantlar ====================
