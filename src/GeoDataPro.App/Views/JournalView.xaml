@@ -99,7 +99,9 @@
                                         <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.Litho, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                   SelectedValue="{Binding LithoCode, UpdateSourceTrigger=PropertyChanged}"
                                                   SelectedValuePath="Code" IsEditable="True" IsTextSearchEnabled="True"
-                                                  TextSearch.TextPath="Name" StaysOpenOnEdit="True">
+                                                  TextSearch.TextPath="Name" StaysOpenOnEdit="True"
+                                                  GotKeyboardFocus="EditCombo_GotKeyboardFocus"
+                                                  PreviewMouseLeftButtonDown="EditCombo_PreviewMouseLeftButtonDown">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal">
@@ -131,7 +133,9 @@
                                         <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.Colors, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                   SelectedValue="{Binding ColorCode, UpdateSourceTrigger=PropertyChanged}"
                                                   SelectedValuePath="Code" IsEditable="True" IsTextSearchEnabled="True"
-                                                  TextSearch.TextPath="Name" StaysOpenOnEdit="True">
+                                                  TextSearch.TextPath="Name" StaysOpenOnEdit="True"
+                                                  GotKeyboardFocus="EditCombo_GotKeyboardFocus"
+                                                  PreviewMouseLeftButtonDown="EditCombo_PreviewMouseLeftButtonDown">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal">

@@ -78,5 +78,6 @@ public class AppDbContext : DbContext
         AddColumn("DescriptionTemplates", "TextureCode", "INTEGER NULL");
         AddColumn("DescriptionTemplates", "MineralCode", "INTEGER NULL");
         AddColumn("DescriptionTemplates", "GrainSize", "TEXT NULL");
+        AddColumn("SampleRows", "SampleTypeCode", "INTEGER NULL");
     }
 }

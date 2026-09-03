@@ -123,13 +123,13 @@ public static class ExcelService
         int added = 0;
         foreach (var row in ws.RowsUsed().Skip(2))
         {
-            var num = row.Cell(2).GetValue<long?>();
+            var num = row.Cell(2).GetString().Trim();
             var top = row.Cell(3).GetValue<double?>();
             var bot = row.Cell(4).GetValue<double?>();
-            if (num is null || top is null || bot is null) continue;
+            if (string.IsNullOrWhiteSpace(num) || top is null || bot is null) continue;
             db.SampleRows.Add(new SampleRow
             {
-                WellId = wellId, SampleNumber = num.Value, Top = top.Value, Bottom = bot.Value,
+                WellId = wellId, SampleNumber = num, Top = top.Value, Bottom = bot.Value,
                 ZoneName = row.Cell(6).GetString().Trim().NullIfEmpty(),
             });
             added++;

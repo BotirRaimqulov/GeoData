@@ -11,11 +11,33 @@ namespace GeoDataPro.App.ViewModels;
 
 public partial class SamplesViewModel : ObservableObject
 {
+    public sealed class SampleTypeOption
+    {
+        public int Code { get; init; }
+        public string Name { get; init; } = "";
+    }
+
     readonly AppState _state = AppState.Instance;
+    static readonly SampleTypeOption[] _sampleTypeDefaults =
+    {
+        new() { Code = 11, Name = "Oddiy namuna" },
+        new() { Code = 12, Name = "Yalpi namuna" },
+        new() { Code = 0, Name = "Granulametrik tarkib namunasi" },
+        new() { Code = 4, Name = "Mineralogik namuna" },
+    };
+
     public ObservableCollection<SampleRow> Rows { get; } = new();
+    public ObservableCollection<SampleTypeOption> SampleTypes { get; } = new(_sampleTypeDefaults);
     [ObservableProperty] private SampleRow? _selected;
+    [ObservableProperty] private int _selectedSampleTypeCode = 11;
     [ObservableProperty] private int _count;
     [ObservableProperty] private double _totalLength;
+
+    partial void OnSelectedChanged(SampleRow? value)
+    {
+        if (value?.SampleTypeCode is int code)
+            SelectedSampleTypeCode = code;
+    }
 
     public SamplesViewModel()
     {
@@ -31,7 +53,11 @@ public partial class SamplesViewModel : ObservableObject
         {
             using var db = new AppDbContext();
             foreach (var r in db.SampleRows.Where(s => s.WellId == well.Id).OrderBy(s => s.Top))
+            {
+                if (!r.SampleTypeCode.HasValue)
+                    r.SampleTypeCode = InferSampleTypeCode(r.SampleNumber, well.Number);
                 Rows.Add(r);
+            }
         }
         Selected = Rows.FirstOrDefault();
         Recalc();
@@ -50,9 +76,52 @@ public partial class SamplesViewModel : ObservableObject
         if (well == null) return;
         var last = Rows.LastOrDefault();
         double top = last?.Bottom ?? well.StartDepth ?? 0;
-        long num = (last?.SampleNumber ?? 0) + 1;
-        Rows.Add(new SampleRow { WellId = well.Id, SampleNumber = num, Top = top, Bottom = Math.Round(top + 0.5, 2) });
+        int sampleTypeCode = SelectedSampleTypeCode;
+        int sequence = NextSequenceForType(well.Number, sampleTypeCode);
+        string sampleNumber = $"{sampleTypeCode}{well.Number}{sequence:00}";
+        Rows.Add(new SampleRow
+        {
+            WellId = well.Id,
+            SampleTypeCode = sampleTypeCode,
+            SampleNumber = sampleNumber,
+            Top = top,
+            Bottom = Math.Round(top + 0.5, 2),
+        });
         Recalc();
+    }
+
+    int NextSequenceForType(string wellNumber, int sampleTypeCode)
+    {
+        var prefix = $"{sampleTypeCode}{wellNumber}";
+        var max = Rows.Select(r => ParseSequence(r.SampleNumber, prefix))
+                      .Where(v => v.HasValue)
+                      .Select(v => v!.Value)
+                      .DefaultIfEmpty(0)
+                      .Max();
+        return max + 1;
+    }
+
+    static int? ParseSequence(string? sampleNumber, string prefix)
+    {
+        if (string.IsNullOrWhiteSpace(sampleNumber)) return null;
+        var value = sampleNumber.Trim();
+        if (!value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
+        var tail = value.Substring(prefix.Length);
+        return int.TryParse(tail, out var seq) ? seq : null;
+    }
+
+    static int InferSampleTypeCode(string? sampleNumber, string wellNumber)
+    {
+        if (string.IsNullOrWhiteSpace(sampleNumber))
+            return 11;
+
+        var normalized = sampleNumber.Trim();
+        foreach (var item in _sampleTypeDefaults)
+        {
+            if (normalized.StartsWith($"{item.Code}{wellNumber}", StringComparison.OrdinalIgnoreCase))
+                return item.Code;
+        }
+        return 11;
     }
 
     [RelayCommand]

@@ -31,6 +31,11 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <ComboBox Width="250" Margin="0,0,8,0"
+                          ItemsSource="{Binding SampleTypes}"
+                          SelectedValuePath="Code"
+                          DisplayMemberPath="Name"
+                          SelectedValue="{Binding SelectedSampleTypeCode}" />
                 <Button Content="+  Namuna qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" />
                 <Button Content="🗑  O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" />
                 <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" />
@@ -42,6 +47,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Tartib raqam" Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Width="100" />
                     <DataGridTextColumn Header="Namuna raqami" Binding="{Binding SampleNumber, UpdateSourceTrigger=PropertyChanged}" Width="160" />
+                    <DataGridTextColumn Header="Namuna turi kodi" Binding="{Binding SampleTypeCode, UpdateSourceTrigger=PropertyChanged}" Width="140" />
                     <DataGridTextColumn Header="TOP (m)" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="120" />
                     <DataGridTextColumn Header="BOTTOM (m)" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="120" />
                     <DataGridTextColumn Header="Uzunlik (m)" Binding="{Binding Length, StringFormat=N1}" IsReadOnly="True" Width="120" />
