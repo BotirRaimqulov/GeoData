@@ -101,13 +101,15 @@ public partial class SrpViewModel : ObservableObject
         using var db = new AppDbContext();
         try
         {
-            var existing = db.SrpRows.Where(s => s.WellId == well.Id).ToList();
+            var existingById = db.SrpRows.Where(s => s.WellId == well.Id).ToDictionary(s => s.Id);
             var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
-            foreach (var g in existing.Where(e => !keep.Contains(e.Id))) db.SrpRows.Remove(g);
+            foreach (var g in existingById.Values.Where(e => !keep.Contains(e.Id))) db.SrpRows.Remove(g);
             foreach (var r in Rows)
             {
                 r.WellId = well.Id;
-                if (r.Id == 0) db.SrpRows.Add(r); else db.SrpRows.Update(r);
+                if (r.Id == 0) db.SrpRows.Add(r);
+                else if (existingById.TryGetValue(r.Id, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(r);
+                else db.SrpRows.Update(r);
             }
             db.SaveChanges();
         }
