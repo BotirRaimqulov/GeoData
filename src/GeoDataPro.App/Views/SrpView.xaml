@@ -12,7 +12,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,16">
                 <Grid>
@@ -54,12 +53,6 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,14,0,0">
-                <v:StatTile Caption="Nuqtalar" Value="{Binding Count}" Unit="ta" />
-                <v:StatTile Caption="Min GK" Value="{Binding MinGk}" Unit="" />
-                <v:StatTile Caption="Max GK" Value="{Binding MaxGk}" Unit="" />
-                <v:StatTile Caption="O'rtacha GK" Value="{Binding AvgGk}" Unit="" />
-            </StackPanel>
         </Grid>
 
         <Border Grid.Column="1" Style="{StaticResource Card}">
