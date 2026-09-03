@@ -125,8 +125,6 @@ public class JournalRow
     public int? MineralCode { get; set; }
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     public string? GrainSize { get; set; }
-    public double? Hardness { get; set; }              // Qattiqlik toifasi
-    public double? CarbonateCo2 { get; set; }          // Karbonatliligi CO2
     public string? Description { get; set; }
 
     public double Interval => System.Math.Round(Bottom - Top, 3);

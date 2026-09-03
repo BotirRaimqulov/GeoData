@@ -77,8 +77,8 @@
                             <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="0.7*" MinWidth="70" />
                             <DataGridTextColumn Header="Yuqori (m)" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
                             <DataGridTextColumn Header="Pastki (m)" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
-                            <DataGridTextColumn Header="Interval" Binding="{Binding Interval, StringFormat=N1}" IsReadOnly="True" Width="1*" MinWidth="100" />
                             <DataGridTextColumn Header="Kern, m" Binding="{Binding CoreRecoveryM, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
+                            <DataGridTextColumn Header="Zona nomi" Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Width="1.2*" MinWidth="140" />
 
                             <DataGridTemplateColumn Header="Litologiya" Width="1.3*" MinWidth="130">
                                 <DataGridTemplateColumn.CellTemplate>
@@ -165,6 +165,36 @@
                                         <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.Textures, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                   SelectedValue="{Binding TextureCode, UpdateSourceTrigger=PropertyChanged}"
                                                   SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Mineralizatsiya" Width="1.3*" MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding MineralDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.Minerals, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  SelectedValue="{Binding MineralCode, UpdateSourceTrigger=PropertyChanged}"
+                                                  SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Donadorligi" Width="1.1*" MinWidth="130">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding GrainSize}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedValuePath="Tag"
+                                                  SelectedValue="{Binding GrainSize, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="—" Tag="{x:Null}" />
+                                            <ComboBoxItem Content="Mayda" Tag="mayda" />
+                                            <ComboBoxItem Content="O'rta" Tag="o'rta" />
+                                            <ComboBoxItem Content="Yirik" Tag="yirik" />
+                                        </ComboBox>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
@@ -269,22 +299,6 @@
                                 <ComboBoxItem Content="O'rta" Tag="o'rta" />
                                 <ComboBoxItem Content="Yirik" Tag="yirik" />
                             </ComboBox>
-
-                            <Grid Margin="0,0,0,14">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="12" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="QATTIQLIK" Style="{StaticResource Caption}" />
-                                    <TextBox Text="{Binding Hardness, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" Margin="0,4,0,0" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="KARBONATLILIGI CO₂" Style="{StaticResource Caption}" />
-                                    <TextBox Text="{Binding CarbonateCo2, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" Margin="0,4,0,0" />
-                                </StackPanel>
-                            </Grid>
 
                             <Grid Margin="0,0,0,4">
                                 <TextBlock Text="KERN TAVSIFI" Style="{StaticResource Caption}" VerticalAlignment="Center" />

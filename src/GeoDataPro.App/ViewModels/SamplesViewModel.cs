@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GeoDataPro.App.Data;
 using GeoDataPro.App.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace GeoDataPro.App.ViewModels;
 
@@ -60,7 +61,7 @@ public partial class SamplesViewModel : ObservableObject
         if (well != null)
         {
             using var db = new AppDbContext();
-            foreach (var r in db.SampleRows.Where(s => s.WellId == well.Id).OrderBy(s => s.Top))
+            foreach (var r in db.SampleRows.AsNoTracking().Where(s => s.WellId == well.Id).OrderBy(s => s.Top))
             {
                 if (!r.SampleTypeCode.HasValue)
                     r.SampleTypeCode = InferSampleTypeCode(r.SampleNumber, well.Number);
