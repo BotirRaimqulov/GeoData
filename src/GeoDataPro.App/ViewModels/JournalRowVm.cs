@@ -15,6 +15,11 @@ public partial class JournalRowVm : ObservableObject
     bool _ready;
     /// <summary>Oxirgi marta avtomatik yozilgan matn — foydalanuvchi tahririni ajratish uchun.</summary>
     string _lastAuto = "";
+    int? _lastInferredLitho;
+    int? _lastInferredColor;
+    int? _lastInferredTexture;
+    int? _lastInferredMineral;
+    string? _lastInferredGrain;
 
     public JournalRowVm(JournalRow model)
     {
@@ -88,6 +93,7 @@ public partial class JournalRowVm : ObservableObject
             DescriptionIsAuto = v.Length == 0
                                 || string.Equals(v, _lastAuto, System.StringComparison.OrdinalIgnoreCase)
                                 || string.Equals(v, BuildAutoDescription(), System.StringComparison.OrdinalIgnoreCase);
+            ApplyClassificationFromDescription(v);
         }
     }
 
@@ -167,6 +173,39 @@ public partial class JournalRowVm : ObservableObject
     void Touch() { if (!_ready) return; IsDirty = true; DirtyChanged?.Invoke(); }
     public event System.Action? DirtyChanged;
     public void ClearDirty() => IsDirty = false;
+
+    void ApplyClassificationFromDescription(string? description)
+    {
+        var result = DescriptionClassifier.Classify(description, RefCache.Instance);
+
+        TryApplyCode(result.LithoCode, LithoCode, _lastInferredLitho, v => LithoCode = v, v => _lastInferredLitho = v);
+        TryApplyCode(result.ColorCode, ColorCode, _lastInferredColor, v => ColorCode = v, v => _lastInferredColor = v);
+        TryApplyCode(result.TextureCode, TextureCode, _lastInferredTexture, v => TextureCode = v, v => _lastInferredTexture = v);
+        TryApplyCode(result.MineralCode, MineralCode, _lastInferredMineral, v => MineralCode = v, v => _lastInferredMineral = v);
+        TryApplyGrain(result.GrainSize);
+    }
+
+    void TryApplyCode(int? inferred, int? current, int? lastInferred, System.Action<int?> assign, System.Action<int?> setLast)
+    {
+        if (!inferred.HasValue) return;
+        bool canApply = !current.HasValue || current == lastInferred;
+        if (!canApply) return;
+        if (current != inferred) assign(inferred);
+        setLast(inferred);
+    }
+
+    void TryApplyGrain(string? inferred)
+    {
+        if (string.IsNullOrWhiteSpace(inferred)) return;
+        var current = GrainSize?.Trim();
+        var last = _lastInferredGrain?.Trim();
+        bool canApply = string.IsNullOrWhiteSpace(current)
+                        || string.Equals(current, last, System.StringComparison.OrdinalIgnoreCase);
+        if (!canApply) return;
+        if (!string.Equals(current, inferred, System.StringComparison.OrdinalIgnoreCase))
+            GrainSize = inferred;
+        _lastInferredGrain = inferred;
+    }
 
     void Recalc()
     {
