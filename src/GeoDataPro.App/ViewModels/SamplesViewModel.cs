@@ -34,7 +34,7 @@ public partial class SamplesViewModel : ObservableObject
     public ICollectionView FilteredRows { get; }
     public ObservableCollection<SampleTypeOption> SampleTypes { get; } = new(_sampleTypeDefaults);
     [ObservableProperty] private SampleRow? _selected;
-    [ObservableProperty] private int? _selectedSampleTypeCode;
+    [ObservableProperty] private int? _selectedSampleTypeCode = 11;
     [ObservableProperty] private int _count;
     [ObservableProperty] private double _totalLength;
 

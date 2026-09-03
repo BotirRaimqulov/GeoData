@@ -52,12 +52,12 @@
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
             <DataGrid ItemsSource="{Binding FilteredRows}" SelectedItem="{Binding Selected}" BorderThickness="0">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Tartib raqam" Binding="{Binding DisplayOrder}" IsReadOnly="True" Width="100" />
-                    <DataGridTextColumn Header="Namuna raqami" Binding="{Binding SampleNumber, UpdateSourceTrigger=PropertyChanged}" Width="160" />
-                    <DataGridTextColumn Header="Namuna turi kodi" Binding="{Binding SampleTypeCode, UpdateSourceTrigger=PropertyChanged}" Width="140" />
-                    <DataGridTextColumn Header="TOP (m)" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="120" />
-                    <DataGridTextColumn Header="BOTTOM (m)" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="120" />
-                    <DataGridTextColumn Header="Uzunlik (m)" Binding="{Binding Length, StringFormat=N1}" IsReadOnly="True" Width="120" />
+                    <DataGridTextColumn Header="Tartib raqam" Binding="{Binding DisplayOrder}" IsReadOnly="True" Width="1*" MinWidth="100" />
+                    <DataGridTextColumn Header="Namuna raqami" Binding="{Binding SampleNumber, UpdateSourceTrigger=PropertyChanged}" Width="1.4*" MinWidth="140" />
+                    <DataGridTextColumn Header="Namuna turi kodi" Binding="{Binding SampleTypeCode, UpdateSourceTrigger=PropertyChanged}" Width="1.2*" MinWidth="120" />
+                    <DataGridTextColumn Header="Yuqori (m)" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
+                    <DataGridTextColumn Header="Pastki (m)" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
+                    <DataGridTextColumn Header="Uzunlik (m)" Binding="{Binding Length, StringFormat=N1}" IsReadOnly="True" Width="1*" MinWidth="100" />
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
