@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -96,5 +97,50 @@ public class BoolToVisibilityConverter : IValueConverter
         if (Invert) b = !b;
         return b ? Visibility.Visible : Visibility.Collapsed;
     }
+    public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => Binding.DoNothing;
+}
+
+public class PercentageBadgeBrushConverter : IValueConverter
+{
+    public object Convert(object? value, Type t, object? parameter, CultureInfo c)
+    {
+        var level = ResolveLevel(value as string);
+        return level switch
+        {
+            0 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9")!),
+            1 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DBEAFE")!),
+            2 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#DCFCE7")!),
+            _ => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FEF3C7")!),
+        };
+    }
+
+    public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => Binding.DoNothing;
+
+    internal static int ResolveLevel(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return 0;
+        var digits = new string(text.Where(ch => char.IsDigit(ch) || ch == '.' || ch == ',').ToArray()).Replace(',', '.');
+        if (!double.TryParse(digits, NumberStyles.Float, CultureInfo.InvariantCulture, out var percent))
+            return 3;
+        if (percent < 5) return 0;
+        if (percent <= 20) return 1;
+        return 2;
+    }
+}
+
+public class PercentageBadgeTextBrushConverter : IValueConverter
+{
+    public object Convert(object? value, Type t, object? parameter, CultureInfo c)
+    {
+        var level = PercentageBadgeBrushConverter.ResolveLevel(value as string);
+        return level switch
+        {
+            0 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#475569")!),
+            1 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0284C7")!),
+            2 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#15803D")!),
+            _ => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B45309")!),
+        };
+    }
+
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => Binding.DoNothing;
 }

@@ -40,7 +40,7 @@ public partial class MainViewModel : ObservableObject
         "textures" => "Teksturalar",
         "minerals" => "Mineralizatsiya",
         "descriptions" => "Tavsif shablonlari",
-        "wells" => "Quduqlar",
+        "wells" => "Loyiha va quduq boshqaruvi",
         "io" => "Import / Eksport",
         _ => "GeoData Pro",
     };

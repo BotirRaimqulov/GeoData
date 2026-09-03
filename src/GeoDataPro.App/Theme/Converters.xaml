@@ -11,5 +11,7 @@
     <inf:NullToVisibilityConverter x:Key="NotNullToVis" Invert="True" />
     <inf:BoolToVisibilityConverter x:Key="BoolToVis" />
     <inf:BoolToVisibilityConverter x:Key="InvBoolToVis" Invert="True" />
+    <inf:PercentageBadgeBrushConverter x:Key="PercentageBadgeBrush" />
+    <inf:PercentageBadgeTextBrushConverter x:Key="PercentageBadgeTextBrush" />
 
 </ResourceDictionary>

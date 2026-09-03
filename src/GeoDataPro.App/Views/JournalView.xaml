@@ -20,34 +20,38 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- ===== Filter / toolbar strip ===== -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
-            <StackPanel Orientation="Horizontal">
-                <StackPanel Margin="0,0,16,0">
-                    <TextBlock Text="Loyiha" Style="{StaticResource FieldLabel}" />
-                    <ComboBox Width="180" ItemsSource="{Binding State.Projects}" DisplayMemberPath="Name"
-                              SelectedItem="{Binding State.CurrentProject}" />
-                </StackPanel>
-                <StackPanel Margin="0,0,16,0">
-                    <TextBlock Text="Quduq" Style="{StaticResource FieldLabel}" />
-                    <StackPanel Orientation="Horizontal">
-                        <ComboBox Width="140" ItemsSource="{Binding State.CurrentWells}" DisplayMemberPath="Number"
-                                  SelectedItem="{Binding State.CurrentWell}" />
-                        <Button Content="+" Style="{StaticResource GhostButton}" Padding="10,3" Margin="6,0,0,0"
-                                ToolTip="Yangi quduq qo'shish" Command="{Binding AddWellCommand}" />
+        <Border Grid.Row="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="Loyiha" Style="{StaticResource FieldLabel}" />
+                        <ComboBox Width="220" ItemsSource="{Binding State.Projects}" DisplayMemberPath="Name"
+                                  SelectedItem="{Binding State.CurrentProject}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="Quduq" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox Width="170" ItemsSource="{Binding State.CurrentWells}" DisplayMemberPath="Number"
+                                      SelectedItem="{Binding State.CurrentWell}" />
+                            <Button Content="+" Style="{StaticResource IconButton}" Margin="8,2,0,2"
+                                    ToolTip="Yangi quduq qo'shish" Command="{Binding AddWellCommand}" />
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                <Button Content="⭱  Import Excel" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
-                        Command="{Binding ImportExcelCommand}" />
-                <Button Content="⭳  Eksport" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
-                        Command="{Binding ExportExcelCommand}" />
-                <Button Content="+  Qator qo'shish" Style="{StaticResource PrimaryButton}"
-                        Command="{Binding Journal.AddRowCommand}" />
-            </StackPanel>
-        </Grid>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="⭱  Import Excel" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
+                            Command="{Binding ImportExcelCommand}" />
+                    <Button Content="⭳  Eksport" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
+                            Command="{Binding ExportExcelCommand}" />
+                    <Button Content="+  Qator qo'shish" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding Journal.AddRowCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- ===== Main split: grid + details ===== -->
         <Grid Grid.Row="1">
@@ -170,15 +174,16 @@
                     </DataGrid>
                 </Border>
 
-                <!-- Row count strip -->
-                <Border Grid.Row="1" Background="#F9FAFB" BorderBrush="{StaticResource Border}" BorderThickness="1,0,1,1"
-                        CornerRadius="0,0,10,10" Padding="14,8" Margin="0,-1,0,0">
+                <Border Grid.Row="1" Background="{StaticResource WindowBg}" BorderBrush="{StaticResource Border}" BorderThickness="1,0,1,1"
+                        CornerRadius="0,0,12,12" Padding="16,10" Margin="0,-1,0,0">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Jami qatorlar:" Foreground="{StaticResource TextSecondary}" />
                         <TextBlock Text="{Binding Journal.TotalRows}" FontWeight="SemiBold" Margin="6,0,0,0" />
-                        <TextBlock Text="  ·  saqlanmagan o'zgarishlar" Foreground="{StaticResource Warn}" FontSize="12" VerticalAlignment="Center"
-                                   Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}" />
-                        <Button Content="Saqlash (Ctrl+S)" Style="{StaticResource PrimaryButton}" Padding="10,5" FontSize="12"
+                        <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="14,0,0,0"
+                                Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
+                        </Border>
+                        <Button Content="Saqlash (Ctrl+S)" Style="{StaticResource PrimaryButton}" FontSize="12"
                                 Margin="16,0,0,0" Command="{Binding Journal.SaveCommand}"
                                 Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
@@ -284,13 +289,13 @@
                             <Grid Margin="0,0,0,4">
                                 <TextBlock Text="KERN TAVSIFI" Style="{StaticResource Caption}" VerticalAlignment="Center" />
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <Border Background="{StaticResource AccentSoft}" CornerRadius="4" Padding="6,2" Margin="0,0,6,0"
+                                    <Border Background="{StaticResource BadgeInfoBg}" Style="{StaticResource Badge}" Margin="0,0,6,0"
                                             Visibility="{Binding DescriptionIsAuto, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="avto" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentDark}" />
+                                        <TextBlock Text="avto" Foreground="{StaticResource BadgeInfoText}" Style="{StaticResource BadgeText}" />
                                     </Border>
-                                    <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0"
+                                    <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="0,0,6,0"
                                             Visibility="{Binding DescriptionIsAuto, Converter={StaticResource InvBoolToVis}}">
-                                        <TextBlock Text="qo'lda" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource Warn}" />
+                                        <TextBlock Text="qo'lda" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
                                     </Border>
                                     <Button Content="↻ Avto" FontSize="11" Padding="7,3" Cursor="Hand"
                                             Command="{Binding DataContext.Journal.RegenerateDescriptionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"

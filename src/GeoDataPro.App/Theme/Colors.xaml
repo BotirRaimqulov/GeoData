@@ -2,42 +2,79 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!-- Palette -->
     <Color x:Key="AccentColor">#2563EB</Color>
     <Color x:Key="AccentDarkColor">#1D4ED8</Color>
+    <Color x:Key="SuccessColor">#10B981</Color>
+    <Color x:Key="DangerColor">#EF4444</Color>
+    <Color x:Key="WarnColor">#F59E0B</Color>
+    <Color x:Key="InfoColor">#0EA5E9</Color>
+    <Color x:Key="HeadingTextColor">#1E293B</Color>
+    <Color x:Key="BodyTextColor">#334155</Color>
+    <Color x:Key="SecondaryTextColor">#64748B</Color>
+    <Color x:Key="MutedTextColor">#94A3B8</Color>
+    <Color x:Key="BorderColor">#E2E8F0</Color>
+    <Color x:Key="BorderStrongColor">#CBD5E1</Color>
+    <Color x:Key="WindowBgColor">#F8FAFC</Color>
+    <Color x:Key="SurfaceBgColor">#FFFFFF</Color>
+    <Color x:Key="HoverBgColor">#F1F5F9</Color>
+    <Color x:Key="AlternateRowColor">#F8FAFC</Color>
+    <Color x:Key="HeaderBlueColor">#EFF6FF</Color>
+    <Color x:Key="SelectedRowColor">#DBEAFE</Color>
+
     <SolidColorBrush x:Key="Accent" Color="{StaticResource AccentColor}" />
     <SolidColorBrush x:Key="AccentDark" Color="{StaticResource AccentDarkColor}" />
-    <SolidColorBrush x:Key="AccentSoft" Color="#EEF3FF" />
+    <SolidColorBrush x:Key="AccentSoft" Color="#DBEAFE" />
+    <SolidColorBrush x:Key="Success" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="Danger" Color="{StaticResource DangerColor}" />
+    <SolidColorBrush x:Key="Warn" Color="{StaticResource WarnColor}" />
+    <SolidColorBrush x:Key="Info" Color="{StaticResource InfoColor}" />
 
-    <SolidColorBrush x:Key="WindowBg" Color="#F4F5F7" />
-    <SolidColorBrush x:Key="SidebarBg" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="SidebarBorder" Color="#E4E7EC" />
-    <SolidColorBrush x:Key="SidebarText" Color="#475467" />
-    <SolidColorBrush x:Key="SidebarTextActive" Color="#1D4ED8" />
-    <SolidColorBrush x:Key="SidebarIcon" Color="#98A2B3" />
-    <SolidColorBrush x:Key="SidebarHeader" Color="#98A2B3" />
-    <SolidColorBrush x:Key="SidebarHover" Color="#F2F4F7" />
-    <SolidColorBrush x:Key="SidebarActiveBg" Color="#EEF3FF" />
-    <SolidColorBrush x:Key="CardBg" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="HeaderBg" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="Border" Color="#E4E7EC" />
-    <SolidColorBrush x:Key="BorderStrong" Color="#D0D5DD" />
+    <SolidColorBrush x:Key="WindowBg" Color="{StaticResource WindowBgColor}" />
+    <SolidColorBrush x:Key="SidebarBg" Color="{StaticResource SurfaceBgColor}" />
+    <SolidColorBrush x:Key="SidebarBorder" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="SidebarText" Color="#475569" />
+    <SolidColorBrush x:Key="SidebarTextActive" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="SidebarIcon" Color="{StaticResource SecondaryTextColor}" />
+    <SolidColorBrush x:Key="SidebarHeader" Color="{StaticResource MutedTextColor}" />
+    <SolidColorBrush x:Key="SidebarHover" Color="{StaticResource WindowBgColor}" />
+    <SolidColorBrush x:Key="SidebarActiveBg" Color="{StaticResource HeaderBlueColor}" />
+    <SolidColorBrush x:Key="CardBg" Color="{StaticResource SurfaceBgColor}" />
+    <SolidColorBrush x:Key="HeaderBg" Color="{StaticResource SurfaceBgColor}" />
+    <SolidColorBrush x:Key="Border" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="BorderStrong" Color="{StaticResource BorderStrongColor}" />
 
-    <SolidColorBrush x:Key="TextPrimary" Color="#1F2937" />
-    <SolidColorBrush x:Key="TextSecondary" Color="#667085" />
-    <SolidColorBrush x:Key="TextMuted" Color="#98A2B3" />
+    <SolidColorBrush x:Key="TextPrimary" Color="{StaticResource HeadingTextColor}" />
+    <SolidColorBrush x:Key="TextBody" Color="{StaticResource BodyTextColor}" />
+    <SolidColorBrush x:Key="TextSecondary" Color="{StaticResource SecondaryTextColor}" />
+    <SolidColorBrush x:Key="TextMuted" Color="{StaticResource MutedTextColor}" />
 
-    <SolidColorBrush x:Key="RowHover" Color="#F5F8FF" />
-    <SolidColorBrush x:Key="RowSelected" Color="#E3ECFF" />
-    <SolidColorBrush x:Key="GridLine" Color="#EAECF0" />
+    <SolidColorBrush x:Key="RowHover" Color="{StaticResource HoverBgColor}" />
+    <SolidColorBrush x:Key="RowSelected" Color="{StaticResource SelectedRowColor}" />
+    <SolidColorBrush x:Key="GridLine" Color="#F1F5F9" />
+    <SolidColorBrush x:Key="TableHeaderBg" Color="{StaticResource HeaderBlueColor}" />
+    <SolidColorBrush x:Key="TableHeaderBorder" Color="{StaticResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="AlternateRowBrush" Color="{StaticResource AlternateRowColor}" />
 
-    <SolidColorBrush x:Key="Success" Color="#16A34A" />
-    <SolidColorBrush x:Key="Warn" Color="#D97706" />
-    <SolidColorBrush x:Key="Danger" Color="#DC2626" />
+    <SolidColorBrush x:Key="InputBg" Color="{StaticResource SurfaceBgColor}" />
+    <SolidColorBrush x:Key="SecondaryButtonBg" Color="#F1F5F9" />
+    <SolidColorBrush x:Key="SecondaryButtonHoverBg" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="FocusRing" Color="#DBEAFE" />
+    <SolidColorBrush x:Key="MetricCardBg" Color="{StaticResource SurfaceBgColor}" />
+
+    <SolidColorBrush x:Key="BadgeInfoBg" Color="#DBEAFE" />
+    <SolidColorBrush x:Key="BadgeInfoText" Color="#0284C7" />
+    <SolidColorBrush x:Key="BadgeSuccessBg" Color="#DCFCE7" />
+    <SolidColorBrush x:Key="BadgeSuccessText" Color="#15803D" />
+    <SolidColorBrush x:Key="BadgeWarnBg" Color="#FEF3C7" />
+    <SolidColorBrush x:Key="BadgeWarnText" Color="#B45309" />
+    <SolidColorBrush x:Key="BadgeDangerBg" Color="#FEE2E2" />
+    <SolidColorBrush x:Key="BadgeDangerText" Color="#991B1B" />
+    <SolidColorBrush x:Key="BadgeNeutralBg" Color="#F1F5F9" />
+    <SolidColorBrush x:Key="BadgeNeutralText" Color="#475569" />
 
     <FontFamily x:Key="UiFont">Segoe UI</FontFamily>
-    <sys:Double x:Key="RadiusSm">6</sys:Double>
-    <CornerRadius x:Key="CardRadius">10</CornerRadius>
-    <CornerRadius x:Key="CtlRadius">6</CornerRadius>
+    <sys:Double x:Key="RadiusSm">8</sys:Double>
+    <CornerRadius x:Key="CardRadius">12</CornerRadius>
+    <CornerRadius x:Key="CtlRadius">8</CornerRadius>
 
 </ResourceDictionary>
