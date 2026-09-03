@@ -1,7 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GeoDataPro.App.Data;
@@ -13,13 +16,14 @@ public partial class SamplesViewModel : ObservableObject
 {
     public sealed class SampleTypeOption
     {
-        public int Code { get; init; }
+        public int? Code { get; init; }
         public string Name { get; init; } = "";
     }
 
     readonly AppState _state = AppState.Instance;
     static readonly SampleTypeOption[] _sampleTypeDefaults =
     {
+        new() { Code = null, Name = "Barcha namunalar" },
         new() { Code = 11, Name = "Oddiy namuna" },
         new() { Code = 12, Name = "Yalpi namuna" },
         new() { Code = 0, Name = "Granulametrik tarkib namunasi" },
@@ -27,26 +31,30 @@ public partial class SamplesViewModel : ObservableObject
     };
 
     public ObservableCollection<SampleRow> Rows { get; } = new();
+    public ICollectionView FilteredRows { get; }
     public ObservableCollection<SampleTypeOption> SampleTypes { get; } = new(_sampleTypeDefaults);
     [ObservableProperty] private SampleRow? _selected;
-    [ObservableProperty] private int _selectedSampleTypeCode = 11;
+    [ObservableProperty] private int? _selectedSampleTypeCode;
     [ObservableProperty] private int _count;
     [ObservableProperty] private double _totalLength;
 
-    partial void OnSelectedChanged(SampleRow? value)
+    partial void OnSelectedSampleTypeCodeChanged(int? value)
     {
-        if (value?.SampleTypeCode is int code)
-            SelectedSampleTypeCode = code;
+        RefreshFilter();
     }
 
     public SamplesViewModel()
     {
+        FilteredRows = CollectionViewSource.GetDefaultView(Rows);
+        FilteredRows.Filter = FilterRow;
+        Rows.CollectionChanged += Rows_CollectionChanged;
         _state.WellChanged += Load;
         Load();
     }
 
     public void Load()
     {
+        UnsubscribeAllRows();
         Rows.Clear();
         var well = _state.CurrentWell;
         if (well != null)
@@ -56,17 +64,18 @@ public partial class SamplesViewModel : ObservableObject
             {
                 if (!r.SampleTypeCode.HasValue)
                     r.SampleTypeCode = InferSampleTypeCode(r.SampleNumber, well.Number);
+                SubscribeRow(r);
                 Rows.Add(r);
             }
         }
-        Selected = Rows.FirstOrDefault();
-        Recalc();
+        RefreshFilter();
     }
 
     void Recalc()
     {
-        Count = Rows.Count;
-        TotalLength = Math.Round(Rows.Sum(r => r.Length), 2);
+        var visibleRows = FilteredRows.Cast<SampleRow>().ToList();
+        Count = visibleRows.Count;
+        TotalLength = Math.Round(visibleRows.Sum(r => r.Length), 2);
     }
 
     [RelayCommand]
@@ -74,20 +83,22 @@ public partial class SamplesViewModel : ObservableObject
     {
         var well = _state.CurrentWell;
         if (well == null) return;
-        var last = Rows.LastOrDefault();
+        var last = Rows.OrderBy(r => r.Top).LastOrDefault();
         double top = last?.Bottom ?? well.StartDepth ?? 0;
-        int sampleTypeCode = SelectedSampleTypeCode;
+        int sampleTypeCode = SelectedSampleTypeCode ?? 11;
         int sequence = NextSequenceForType(well.Number, sampleTypeCode);
         string sampleNumber = $"{sampleTypeCode}{well.Number}{sequence:00}";
-        Rows.Add(new SampleRow
+        var row = new SampleRow
         {
             WellId = well.Id,
             SampleTypeCode = sampleTypeCode,
             SampleNumber = sampleNumber,
             Top = top,
             Bottom = Math.Round(top + 0.5, 2),
-        });
-        Recalc();
+        };
+        SubscribeRow(row);
+        Rows.Add(row);
+        RefreshFilter(selectRow: row);
     }
 
     int NextSequenceForType(string wellNumber, int sampleTypeCode)
@@ -118,8 +129,8 @@ public partial class SamplesViewModel : ObservableObject
         var normalized = sampleNumber.Trim();
         foreach (var item in _sampleTypeDefaults)
         {
-            if (normalized.StartsWith($"{item.Code}{wellNumber}", StringComparison.OrdinalIgnoreCase))
-                return item.Code;
+            if (item.Code.HasValue && normalized.StartsWith($"{item.Code.Value}{wellNumber}", StringComparison.OrdinalIgnoreCase))
+                return item.Code.Value;
         }
         return 11;
     }
@@ -128,8 +139,9 @@ public partial class SamplesViewModel : ObservableObject
     void Delete()
     {
         if (Selected == null) return;
+        UnsubscribeRow(Selected);
         Rows.Remove(Selected);
-        Recalc();
+        RefreshFilter();
     }
 
     [RelayCommand]
@@ -149,5 +161,96 @@ public partial class SamplesViewModel : ObservableObject
         db.SaveChanges();
         Recalc();
         MessageBox.Show("Namunalar saqlandi.", "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    bool FilterRow(object item)
+    {
+        if (item is not SampleRow row)
+            return false;
+
+        if (!SelectedSampleTypeCode.HasValue)
+            return true;
+
+        return MatchesSampleTypePrefix(row.SampleNumber, SelectedSampleTypeCode.Value);
+    }
+
+    static bool MatchesSampleTypePrefix(string? sampleNumber, int sampleTypeCode)
+    {
+        if (string.IsNullOrWhiteSpace(sampleNumber))
+            return false;
+
+        return sampleNumber.Trim().StartsWith(sampleTypeCode.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    void RefreshFilter(SampleRow? selectRow = null)
+    {
+        FilteredRows.Refresh();
+        ReindexVisibleRows();
+
+        var preferred = selectRow != null && FilterRow(selectRow) ? selectRow : Selected;
+        if (preferred == null || !FilterRow(preferred) || !FilteredRows.Cast<SampleRow>().Contains(preferred))
+            preferred = FilteredRows.Cast<SampleRow>().FirstOrDefault();
+
+        Selected = preferred;
+        Recalc();
+    }
+
+    void ReindexVisibleRows()
+    {
+        foreach (var row in Rows)
+            row.DisplayOrder = 0;
+
+        int index = 1;
+        foreach (var row in FilteredRows.Cast<SampleRow>())
+            row.DisplayOrder = index++;
+    }
+
+    void SubscribeRow(SampleRow row)
+    {
+        row.PropertyChanged -= Row_PropertyChanged;
+        row.PropertyChanged += Row_PropertyChanged;
+    }
+
+    void UnsubscribeRow(SampleRow row)
+    {
+        row.PropertyChanged -= Row_PropertyChanged;
+    }
+
+    void UnsubscribeAllRows()
+    {
+        foreach (var row in Rows)
+            UnsubscribeRow(row);
+    }
+
+    void Rows_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems != null)
+        {
+            foreach (SampleRow row in e.OldItems)
+                UnsubscribeRow(row);
+        }
+
+        if (e.NewItems != null)
+        {
+            foreach (SampleRow row in e.NewItems)
+                SubscribeRow(row);
+        }
+    }
+
+    void Row_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SampleRow.Top) or nameof(SampleRow.Bottom))
+        {
+            Recalc();
+            return;
+        }
+
+        if (e.PropertyName is nameof(SampleRow.SampleNumber) or nameof(SampleRow.SampleTypeCode))
+        {
+            if (sender is SampleRow row && !row.SampleTypeCode.HasValue)
+                row.SampleTypeCode = InferSampleTypeCode(row.SampleNumber, _state.CurrentWell?.Number ?? "");
+
+            RefreshFilter();
+        }
     }
 }
