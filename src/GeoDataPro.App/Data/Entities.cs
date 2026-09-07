@@ -200,12 +200,24 @@ public class SampleRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
 }
 
 /// <summary>SRP - kern bo'yicha gamma-karotaj (Core_GK) nuqtasi.</summary>
-public class SrpRow
+public class SrpRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
 {
     public int Id { get; set; }
     public int WellId { get; set; }
     public Well? Well { get; set; }
 
-    public double Md { get; set; }
-    public double CoreGk { get; set; }
+    double _md;
+    double _coreGk;
+
+    public double Md
+    {
+        get => _md;
+        set => SetProperty(ref _md, value);
+    }
+
+    public double CoreGk
+    {
+        get => _coreGk;
+        set => SetProperty(ref _coreGk, value);
+    }
 }
