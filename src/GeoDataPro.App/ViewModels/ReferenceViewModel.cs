@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,10 +23,14 @@ public partial class ReferenceViewModel : ObservableObject
     public ObservableCollection<MineralCode> Minerals { get; } = new();
     public ObservableCollection<DescriptionTemplate> Descriptions { get; } = new();
 
+    /// <summary>Jadvalda ko'p tanlangan qatorlar (Ctrl+Click / Shift+Click orqali).</summary>
+    public ObservableCollection<object> SelectedItems { get; } = new();
+
     /// <summary>Tavsif shablonlarini Litho/Rang/Tekstura/Mineral bilan bog'lash uchun (spravochnik ro'yxatlari).</summary>
     public RefCache Ref => RefCache.Instance;
 
     [ObservableProperty] private object? _selected;
+    [ObservableProperty] private bool _hasUnsaved;
     public string Title { get; }
 
     public ReferenceViewModel(Kind kind)
@@ -38,13 +44,25 @@ public partial class ReferenceViewModel : ObservableObject
             Kind.Mineral => "Mineralizatsiya",
             _ => "Tavsif shablonlari",
         };
+        Litho.CollectionChanged += Collection_Changed;
+        Colors.CollectionChanged += Collection_Changed;
+        Textures.CollectionChanged += Collection_Changed;
+        Minerals.CollectionChanged += Collection_Changed;
+        Descriptions.CollectionChanged += Collection_Changed;
         Load();
+    }
+
+    void Collection_Changed(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action is NotifyCollectionChangedAction.Add or NotifyCollectionChangedAction.Remove or NotifyCollectionChangedAction.Reset)
+            HasUnsaved = true;
     }
 
     public void Load()
     {
         using var db = new AppDbContext();
         Litho.Clear(); Colors.Clear(); Textures.Clear(); Minerals.Clear(); Descriptions.Clear();
+        HasUnsaved = false;
         switch (CurrentKind)
         {
             case Kind.Litho: foreach (var x in db.LithoCodes.AsNoTracking().OrderBy(x => x.Code)) Litho.Add(x); break;
@@ -53,6 +71,8 @@ public partial class ReferenceViewModel : ObservableObject
             case Kind.Mineral: foreach (var x in db.MineralCodes.AsNoTracking().OrderBy(x => x.Code)) Minerals.Add(x); break;
             case Kind.Description: foreach (var x in db.DescriptionTemplates.AsNoTracking().OrderBy(x => x.Text)) Descriptions.Add(x); break;
         }
+        // Add paytida HasUnsaved true bo'lib qoladi — load holatida uni tozalaymiz.
+        HasUnsaved = false;
     }
 
     [RelayCommand]
@@ -76,14 +96,31 @@ public partial class ReferenceViewModel : ObservableObject
     [RelayCommand]
     void Delete()
     {
-        if (Selected == null) return;
-        switch (Selected)
+        // Ko'p tanlangan elementlar bo'lsa — hammasini o'chiramiz.
+        var toDelete = SelectedItems.Count > 1
+            ? SelectedItems.ToList()
+            : (Selected != null ? new System.Collections.Generic.List<object> { Selected } : new System.Collections.Generic.List<object>());
+
+        if (toDelete.Count == 0) return;
+
+        string msg = toDelete.Count == 1
+            ? "Tanlangan elementni o'chirasizmi?"
+            : $"Tanlangan {toDelete.Count} ta elementni o'chirasizmi?";
+
+        if (MessageBox.Show(msg, "Tasdiqlash",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+        SelectedItems.Clear();
+        foreach (var item in toDelete)
         {
-            case LithoCode l: Litho.Remove(l); break;
-            case ColorCode c: Colors.Remove(c); break;
-            case TextureCode t: Textures.Remove(t); break;
-            case MineralCode m: Minerals.Remove(m); break;
-            case DescriptionTemplate d: Descriptions.Remove(d); break;
+            switch (item)
+            {
+                case LithoCode l: Litho.Remove(l); break;
+                case ColorCode c: Colors.Remove(c); break;
+                case TextureCode t: Textures.Remove(t); break;
+                case MineralCode m: Minerals.Remove(m); break;
+                case DescriptionTemplate d: Descriptions.Remove(d); break;
+            }
         }
     }
 
@@ -117,6 +154,7 @@ public partial class ReferenceViewModel : ObservableObject
 
         RefCache.Instance.Reload();
         AppState.Instance.RaiseDataChanged();
+        HasUnsaved = false;
         AppNotifier.Info("Spravochnik saqlandi.");
     }
 

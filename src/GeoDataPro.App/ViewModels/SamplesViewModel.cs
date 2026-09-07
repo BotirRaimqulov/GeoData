@@ -34,10 +34,15 @@ public partial class SamplesViewModel : ObservableObject
     public ObservableCollection<SampleRow> Rows { get; } = new();
     public ICollectionView FilteredRows { get; }
     public ObservableCollection<SampleTypeOption> SampleTypes { get; } = new(_sampleTypeDefaults);
+
+    /// <summary>Jadvalda ko'p tanlangan qatorlar (Ctrl+Click / Shift+Click orqali).</summary>
+    public ObservableCollection<SampleRow> SelectedItems { get; } = new();
+
     [ObservableProperty] private SampleRow? _selected;
     [ObservableProperty] private int? _selectedSampleTypeCode = 11;
     [ObservableProperty] private int _count;
     [ObservableProperty] private double _totalLength;
+    [ObservableProperty] private bool _hasUnsaved;
 
     partial void OnSelectedSampleTypeCodeChanged(int? value)
     {
@@ -53,10 +58,32 @@ public partial class SamplesViewModel : ObservableObject
         Load();
     }
 
+    void Rows_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // Eski qatorlar subscribe dan chiqariladi.
+        if (e.OldItems != null)
+        {
+            foreach (SampleRow row in e.OldItems)
+                UnsubscribeRow(row);
+        }
+
+        // Yangi qatorlar subscribe qilinadi.
+        if (e.NewItems != null)
+        {
+            foreach (SampleRow row in e.NewItems)
+                SubscribeRow(row);
+        }
+
+        // Har qanday qo'shish/o'chirish — saqlanmagan holatga o'tadi.
+        if (e.Action is NotifyCollectionChangedAction.Add or NotifyCollectionChangedAction.Remove or NotifyCollectionChangedAction.Reset)
+            HasUnsaved = true;
+    }
+
     public void Load()
     {
         UnsubscribeAllRows();
         Rows.Clear();
+        HasUnsaved = false;
         var well = _state.CurrentWell;
         if (well != null)
         {
@@ -69,6 +96,8 @@ public partial class SamplesViewModel : ObservableObject
                 Rows.Add(r);
             }
         }
+        // Add paytida HasUnsaved true bo'lib qoladi — load holatida uni tozalaymiz.
+        HasUnsaved = false;
         RefreshFilter();
     }
 
@@ -139,9 +168,26 @@ public partial class SamplesViewModel : ObservableObject
     [RelayCommand]
     void Delete()
     {
-        if (Selected == null) return;
-        UnsubscribeRow(Selected);
-        Rows.Remove(Selected);
+        // Ko'p tanlangan qatorlar bo'lsa — hammasini o'chiramiz.
+        var toDelete = SelectedItems.Count > 1
+            ? SelectedItems.ToList()
+            : (Selected != null ? new System.Collections.Generic.List<SampleRow> { Selected } : new System.Collections.Generic.List<SampleRow>());
+
+        if (toDelete.Count == 0) return;
+
+        string msg = toDelete.Count == 1
+            ? "Tanlangan namunani o'chirasizmi?"
+            : $"Tanlangan {toDelete.Count} ta namunani o'chirasizmi?";
+
+        if (MessageBox.Show(msg, "Tasdiqlash",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+        SelectedItems.Clear();
+        foreach (var r in toDelete)
+        {
+            UnsubscribeRow(r);
+            Rows.Remove(r);
+        }
         RefreshFilter();
     }
 
@@ -179,7 +225,11 @@ public partial class SamplesViewModel : ObservableObject
             return;
         }
 
+        foreach (var r in Rows) UnsubscribeRow(r);
+        foreach (var r in Rows) SubscribeRow(r);
+        HasUnsaved = false;
         Recalc();
+        _state.RaiseDataChanged();
         AppNotifier.Info("Namunalar saqlandi.");
     }
 
@@ -242,23 +292,11 @@ public partial class SamplesViewModel : ObservableObject
             UnsubscribeRow(row);
     }
 
-    void Rows_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.OldItems != null)
-        {
-            foreach (SampleRow row in e.OldItems)
-                UnsubscribeRow(row);
-        }
-
-        if (e.NewItems != null)
-        {
-            foreach (SampleRow row in e.NewItems)
-                SubscribeRow(row);
-        }
-    }
-
     void Row_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // Har qanday maydon o'zgarishi saqlanmagan holatga o'tadi.
+        HasUnsaved = true;
+
         if (e.PropertyName is nameof(SampleRow.Top) or nameof(SampleRow.Bottom))
         {
             Recalc();

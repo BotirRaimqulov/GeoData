@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -17,6 +19,9 @@ public partial class JournalViewModel : ObservableObject
 
     public ObservableCollection<JournalRowVm> Rows { get; } = new();
 
+    /// <summary>Jadvalda ko'p tanlangan qatorlar (Ctrl+Click / Shift+Click orqali).</summary>
+    public ObservableCollection<JournalRowVm> SelectedItems { get; } = new();
+
     [ObservableProperty] private JournalRowVm? _selected;
     [ObservableProperty] private bool _hasUnsaved;
 
@@ -29,7 +34,31 @@ public partial class JournalViewModel : ObservableObject
     {
         _state.WellChanged += Load;
         _state.DataChanged += RebuildSuggestions;
+        Rows.CollectionChanged += Rows_CollectionChanged;
         Load();
+    }
+
+    void Rows_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // Agar qator qo'shilsa yoki o'chirilsa — T/R ni qayta raqamlaymiz.
+        // Bu o'z navbatida avto zona nomlarini ham yangilaydi (agar avto rejimda bo'lsa).
+        if (e.Action == NotifyCollectionChangedAction.Add ||
+            e.Action == NotifyCollectionChangedAction.Remove ||
+            e.Action == NotifyCollectionChangedAction.Move ||
+            e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            Renumber();
+        }
+    }
+
+    /// <summary>
+    /// Barcha qatorlarning T/R (OrderNo) ni 1..N ga qayta raqamlaydi.
+    /// Avto zona nomi avtomatik yangilanadi.
+    /// </summary>
+    void Renumber()
+    {
+        for (int i = 0; i < Rows.Count; i++)
+            Rows[i].OrderNo = i + 1;
     }
 
     void RebuildSuggestions()
@@ -64,6 +93,11 @@ public partial class JournalViewModel : ObservableObject
             vm.DirtyChanged += () => { HasUnsaved = true; Recalc(); };
             Rows.Add(vm);
         }
+        // T/R ni 1..N ga qayta raqamlaymiz (bazada bo'shliqlar bo'lishi mumkin).
+        Renumber();
+        // Renumber avto zona nomini yangilashi mumkin — bu "load" (saqlanmagan emas) holat.
+        foreach (var vm in Rows) vm.ClearDirty();
+        HasUnsaved = false;
         Selected = Rows.FirstOrDefault();
         RebuildSuggestions();
         Recalc();
@@ -124,6 +158,7 @@ public partial class JournalViewModel : ObservableObject
         var vm = new JournalRowVm(m);
         vm.DirtyChanged += () => { HasUnsaved = true; Recalc(); };
         Rows.Add(vm);
+        // Renumber CollectionChanged orqali avtomatik chaqiriladi — avto zona nomi to'ldiriladi.
         Selected = vm;
         vm.MarkNew();
         Recalc();
@@ -146,6 +181,7 @@ public partial class JournalViewModel : ObservableObject
         vm.DirtyChanged += () => { HasUnsaved = true; Recalc(); };
         int idx = Rows.IndexOf(Selected) + 1;
         Rows.Insert(idx, vm);
+        // Renumber avtomatik chaqiriladi.
         Selected = vm;
         vm.MarkNew();
         Recalc();
@@ -154,12 +190,28 @@ public partial class JournalViewModel : ObservableObject
     [RelayCommand]
     public void DeleteRow()
     {
-        if (Selected == null) return;
-        if (MessageBox.Show("Tanlangan qatorni o'chirasizmi?", "Tasdiqlash",
+        // Ko'p tanlangan qatorlar bo'lsa — hammasini o'chiramiz (Ctrl+Click / Shift+Click).
+        var toDelete = SelectedItems.Count > 1
+            ? SelectedItems.ToList()
+            : (Selected != null ? new System.Collections.Generic.List<JournalRowVm> { Selected } : new System.Collections.Generic.List<JournalRowVm>());
+
+        if (toDelete.Count == 0) return;
+
+        string msg = toDelete.Count == 1
+            ? "Tanlangan qatorni o'chirasizmi?"
+            : $"Tanlangan {toDelete.Count} ta qatorni o'chirasizmi?";
+
+        if (MessageBox.Show(msg, "Tasdiqlash",
             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-        int idx = Rows.IndexOf(Selected);
-        Rows.Remove(Selected);
-        Selected = Rows.ElementAtOrDefault(Math.Min(idx, Rows.Count - 1));
+
+        // O'chirishdan oldin tanlovni tozalaymiz.
+        SelectedItems.Clear();
+
+        foreach (var vm in toDelete)
+            Rows.Remove(vm);
+
+        // Renumber avtomatik (CollectionChanged orqali).
+        Selected = Rows.FirstOrDefault();
         HasUnsaved = true;
         Recalc();
     }
@@ -171,12 +223,19 @@ public partial class JournalViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void RegenerateZoneName()
+    {
+        Selected?.RegenerateZoneName();
+    }
+
+    [RelayCommand]
     public void MoveUp()
     {
         if (Selected == null) return;
         int i = Rows.IndexOf(Selected);
         if (i <= 0) return;
         Rows.Move(i, i - 1);
+        // Renumber avtomatik.
         HasUnsaved = true;
     }
 
@@ -187,6 +246,7 @@ public partial class JournalViewModel : ObservableObject
         int i = Rows.IndexOf(Selected);
         if (i < 0 || i >= Rows.Count - 1) return;
         Rows.Move(i, i + 1);
+        // Renumber avtomatik.
         HasUnsaved = true;
     }
 

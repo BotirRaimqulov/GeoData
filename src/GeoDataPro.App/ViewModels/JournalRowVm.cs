@@ -13,8 +13,10 @@ public partial class JournalRowVm : ObservableObject
     public JournalRow Model { get; }
 
     bool _ready;
-    /// <summary>Oxirgi marta avtomatik yozilgan matn — foydalanuvchi tahririni ajratish uchun.</summary>
+    /// <summary>Oxirgi marta avtomatik yozilgan tavsif matni — foydalanuvchi tahririni ajratish uchun.</summary>
     string _lastAuto = "";
+    /// <summary>Oxirgi marta avtomatik yozilgan zona nomi (OrderNo ga bog'liq).</summary>
+    string _lastAutoZone = "";
     int? _lastInferredLitho;
     int? _lastInferredColor;
     int? _lastInferredTexture;
@@ -38,6 +40,20 @@ public partial class JournalRowVm : ObservableObject
         // Tavsif bo'sh yoki hozirgi avto-natijaga teng bo'lsa — avto rejimda.
         _descriptionIsAuto = string.IsNullOrWhiteSpace(model.Description)
                              || string.Equals(model.Description?.Trim(), _lastAuto, System.StringComparison.OrdinalIgnoreCase);
+
+        // Zona nomi — avtomatik tarzda OrderNo (T/R) ga bog'lanadi.
+        // Bo'sh yoki OrderNo ga teng bo'lsa — avto rejimda; aks holda qo'lda tahrir qilingan.
+        _lastAutoZone = BuildAutoZoneName();
+        _zoneNameIsAuto = string.IsNullOrWhiteSpace(model.ZoneName)
+                          || string.Equals(model.ZoneName?.Trim(), _lastAutoZone, System.StringComparison.OrdinalIgnoreCase);
+
+        // Agar zona nomi bo'sh bo'lsa — avtomatik to'ldiramiz.
+        if (string.IsNullOrWhiteSpace(model.ZoneName))
+        {
+            _zoneName = _lastAutoZone;
+            Model.ZoneName = _lastAutoZone;
+        }
+
         _ready = true;
     }
 
@@ -47,8 +63,18 @@ public partial class JournalRowVm : ObservableObject
     public int OrderNo
     {
         get => Model.OrderNo;
-        set { Model.OrderNo = value; OnPropertyChanged(); }
+        set
+        {
+            if (Model.OrderNo == value) return;
+            Model.OrderNo = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(OrderNoDisplay));
+            AutoFillZoneName();
+        }
     }
+
+    /// <summary>Jadvalda ko'rsatiladigan T/R (tartib raqami) — faqat o'qish uchun.</summary>
+    public string OrderNoDisplay => OrderNo.ToString();
 
     [ObservableProperty] private double _top;
     [ObservableProperty] private double _bottom;
@@ -67,7 +93,66 @@ public partial class JournalRowVm : ObservableObject
     partial void OnTopChanged(double value) { Model.Top = value; Touch(); Recalc(); }
     partial void OnBottomChanged(double value) { Model.Bottom = value; Touch(); Recalc(); }
     partial void OnCoreRecoveryMChanged(double value) { Model.CoreRecoveryM = value; Touch(); Recalc(); }
-    partial void OnZoneNameChanged(string? value) { Model.ZoneName = value; Touch(); }
+    bool _suppressZoneNotify;
+    partial void OnZoneNameChanged(string? value)
+    {
+        Model.ZoneName = value;
+        Touch();
+        // Dasturiy o'zgarish emas — foydalanuvchi qo'lda yozdi.
+        if (!_suppressZoneNotify)
+        {
+            var v = value?.Trim() ?? "";
+            // Bo'sh yoki hozirgi/oxirgi avto-qiymatga teng bo'lsa — avto rejim davom etadi.
+            ZoneNameIsAuto = v.Length == 0
+                              || string.Equals(v, _lastAutoZone, System.StringComparison.OrdinalIgnoreCase)
+                              || string.Equals(v, BuildAutoZoneName(), System.StringComparison.OrdinalIgnoreCase);
+
+            // Foydalanuvchi zona nomini tozalasa — avtomatik T/R bilan to'ldiramiz.
+            if (v.Length == 0)
+                AutoFillZoneName();
+        }
+    }
+
+    // ---------- Zona nomi avtomatik rejimi ----------
+
+    [ObservableProperty] private bool _zoneNameIsAuto = true;
+
+    /// <summary>OrderNo ga asoslangan avto zona nomi (masalan, "5").</summary>
+    string BuildAutoZoneName() => OrderNo.ToString();
+
+    /// <summary>
+    /// Agar zona nomi avto rejimda bo'lsa (yoki bo'sh yoki avvalgi avto-qiymatga teng bo'lsa),
+    /// uni OrderNo ga muvofiq yangilaydi. Aks holda — foydalanuvchi qo'lda yozgan, tegmaymiz.
+    /// </summary>
+    void AutoFillZoneName()
+    {
+        if (!_ready) return;
+        var auto = BuildAutoZoneName();
+        var cur = (ZoneName ?? "").Trim();
+        bool followAuto = ZoneNameIsAuto
+                          || cur.Length == 0
+                          || string.Equals(cur, _lastAutoZone, System.StringComparison.OrdinalIgnoreCase);
+
+        _lastAutoZone = auto;
+        if (!followAuto) return;
+        if (auto == (ZoneName ?? "")) { ZoneNameIsAuto = true; return; }
+
+        _suppressZoneNotify = true;
+        ZoneName = auto;
+        ZoneNameIsAuto = true;
+        _suppressZoneNotify = false;
+    }
+
+    /// <summary>"Avtomatik zona nomiga qaytarish" tugmasi uchun.</summary>
+    public void RegenerateZoneName()
+    {
+        var auto = BuildAutoZoneName();
+        _lastAutoZone = auto;
+        _suppressZoneNotify = true;
+        ZoneName = auto;
+        ZoneNameIsAuto = true;
+        _suppressZoneNotify = false;
+    }
     partial void OnLithoCodeChanged(int? value) { Model.LithoCode = value; Touch(); OnPropertyChanged(nameof(LithoDisplay)); OnPropertyChanged(nameof(LithoPattern)); AutoFillDescription(); }
     partial void OnColorCodeChanged(int? value) { Model.ColorCode = value; Touch(); OnPropertyChanged(nameof(ColorDisplay)); OnPropertyChanged(nameof(ColorHex)); AutoFillDescription(); }
     partial void OnTextureCodeChanged(int? value) { Model.TextureCode = value; Touch(); OnPropertyChanged(nameof(TextureDisplay)); AutoFillDescription(); }

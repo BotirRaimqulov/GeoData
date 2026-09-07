@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,7 +16,12 @@ public partial class SrpViewModel : ObservableObject
 {
     readonly AppState _state = AppState.Instance;
     public ObservableCollection<SrpRow> Rows { get; } = new();
+
+    /// <summary>Jadvalda ko'p tanlangan qatorlar (Ctrl+Click / Shift+Click orqali).</summary>
+    public ObservableCollection<SrpRow> SelectedItems { get; } = new();
+
     [ObservableProperty] private SrpRow? _selected;
+    [ObservableProperty] private bool _hasUnsaved;
 
     [ObservableProperty] private int _count;
     [ObservableProperty] private double _minGk;
@@ -26,19 +33,42 @@ public partial class SrpViewModel : ObservableObject
     public SrpViewModel()
     {
         _state.WellChanged += Load;
+        Rows.CollectionChanged += Rows_CollectionChanged;
         Load();
     }
 
+    void Rows_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action is NotifyCollectionChangedAction.Add or NotifyCollectionChangedAction.Remove or NotifyCollectionChangedAction.Reset)
+            HasUnsaved = true;
+    }
+
+    void SubscribeRow(SrpRow row) => row.PropertyChanged += Row_PropertyChanged;
+    void UnsubscribeRow(SrpRow row) => row.PropertyChanged -= Row_PropertyChanged;
+    void UnsubscribeAllRows()
+    {
+        foreach (var row in Rows) UnsubscribeRow(row);
+    }
+
+    void Row_PropertyChanged(object? sender, PropertyChangedEventArgs e) => HasUnsaved = true;
+
     public void Load()
     {
+        UnsubscribeAllRows();
         Rows.Clear();
+        HasUnsaved = false;
         var well = _state.CurrentWell;
         if (well != null)
         {
             using var db = new AppDbContext();
             foreach (var r in db.SrpRows.AsNoTracking().Where(s => s.WellId == well.Id).OrderBy(s => s.Md))
+            {
+                SubscribeRow(r);
                 Rows.Add(r);
+            }
         }
+        // Add paytida HasUnsaved true bo'lib qoladi — load holatida uni tozalaymiz.
+        HasUnsaved = false;
         Selected = Rows.FirstOrDefault();
         Recalc();
     }
@@ -75,15 +105,34 @@ public partial class SrpViewModel : ObservableObject
         if (well == null) return;
         var last = Rows.LastOrDefault();
         double md = last != null ? Math.Round(last.Md + 0.1, 1) : well.StartDepth ?? 0;
-        Rows.Add(new SrpRow { WellId = well.Id, Md = md, CoreGk = 0 });
+        var row = new SrpRow { WellId = well.Id, Md = md, CoreGk = 0 };
+        SubscribeRow(row);
+        Rows.Add(row);
         Recalc();
     }
 
     [RelayCommand]
     void Delete()
     {
-        if (Selected == null) return;
-        Rows.Remove(Selected);
+        var toDelete = SelectedItems.Count > 1
+            ? SelectedItems.ToList()
+            : (Selected != null ? new System.Collections.Generic.List<SrpRow> { Selected } : new System.Collections.Generic.List<SrpRow>());
+
+        if (toDelete.Count == 0) return;
+
+        string msg = toDelete.Count == 1
+            ? "Tanlangan nuqtani o'chirasizmi?"
+            : $"Tanlangan {toDelete.Count} ta nuqtani o'chirasizmi?";
+
+        if (MessageBox.Show(msg, "Tasdiqlash",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+        SelectedItems.Clear();
+        foreach (var r in toDelete)
+        {
+            UnsubscribeRow(r);
+            Rows.Remove(r);
+        }
         Recalc();
     }
 
@@ -120,7 +169,11 @@ public partial class SrpViewModel : ObservableObject
             return;
         }
 
+        UnsubscribeAllRows();
+        foreach (var r in Rows) SubscribeRow(r);
+        HasUnsaved = false;
         Recalc();
+        _state.RaiseDataChanged();
         AppNotifier.Info("SRP ma'lumotlari saqlandi.");
     }
 

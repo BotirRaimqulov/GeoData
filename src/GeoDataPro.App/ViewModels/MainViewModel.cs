@@ -59,12 +59,37 @@ public partial class MainViewModel : ObservableObject
         timer.Tick += (_, _) => Clock = DateTime.Now.ToString("HH:mm:ss");
         timer.Start();
 
+        // State.DataChanged — saqlash tugagandan keyin global holatni "yangilangan" deb belgilaydi.
         State.DataChanged += () => StatusText = "Barcha o'zgarishlar saqlangan";
-        Journal.PropertyChanged += (_, e) =>
+
+        // Har bir bo'limning HasUnsaved o'zgarishini kuzatamiz va global status ni yangilaymiz.
+        SubscribeUnsaved(Journal, nameof(JournalViewModel.HasUnsaved));
+        SubscribeUnsaved(Samples, nameof(SamplesViewModel.HasUnsaved));
+        SubscribeUnsaved(Srp, nameof(SrpViewModel.HasUnsaved));
+        SubscribeUnsaved(Wells, nameof(WellsViewModel.HasUnsaved));
+        SubscribeUnsaved(LithoRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(ColorRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(TextureRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(MineralRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(DescriptionRef, nameof(ReferenceViewModel.HasUnsaved));
+    }
+
+    void SubscribeUnsaved(ObservableObject vm, string hasUnsavedProp)
+    {
+        vm.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(JournalViewModel.HasUnsaved))
-                StatusText = Journal.HasUnsaved ? "Saqlanmagan o'zgarishlar bor" : "Barcha o'zgarishlar saqlangan";
+            if (e.PropertyName == hasUnsavedProp)
+                RefreshStatusText();
         };
+    }
+
+    void RefreshStatusText()
+    {
+        bool anyUnsaved = Journal.HasUnsaved || Samples.HasUnsaved || Srp.HasUnsaved
+                          || Wells.HasUnsaved
+                          || LithoRef.HasUnsaved || ColorRef.HasUnsaved || TextureRef.HasUnsaved
+                          || MineralRef.HasUnsaved || DescriptionRef.HasUnsaved;
+        StatusText = anyUnsaved ? "Saqlanmagan o'zgarishlar bor" : "Barcha o'zgarishlar saqlangan";
     }
 
     [RelayCommand]

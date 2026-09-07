@@ -17,6 +17,7 @@ public partial class WellsViewModel : ObservableObject
 
     [ObservableProperty] private Project? _selectedProject;
     [ObservableProperty] private WellListItem? _selectedWell;
+    [ObservableProperty] private bool _hasUnsaved;
 
     public int ProjectCount => Projects.Count;
     public int WellCount => Wells.Count;
@@ -30,6 +31,29 @@ public partial class WellsViewModel : ObservableObject
     }
 
     partial void OnSelectedProjectChanged(Project? value) => LoadWells();
+
+    partial void OnSelectedWellChanged(WellListItem? value)
+    {
+        // Yangi quduq tanlanganda — eski tanlovning property change larini bekor qilamiz.
+        if (_subscribedWell != null)
+        {
+            _subscribedWell.PropertyChanged -= Well_PropertyChanged;
+            _subscribedWell = null;
+        }
+
+        // Yangi tanlovni kuzatamiz.
+        if (value != null)
+        {
+            _subscribedWell = value;
+            value.PropertyChanged += Well_PropertyChanged;
+        }
+
+        HasUnsaved = false;
+    }
+
+    WellListItem? _subscribedWell;
+
+    void Well_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => HasUnsaved = true;
 
     public void Load()
     {
@@ -138,6 +162,7 @@ public partial class WellsViewModel : ObservableObject
 
         LoadWells();
         _state.Reload(SelectedProject?.Id, w.Id);
+        HasUnsaved = false;
         AppNotifier.Info("Quduq saqlandi.");
     }
 
