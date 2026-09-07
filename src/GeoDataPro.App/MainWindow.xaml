@@ -55,22 +55,27 @@
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=srp}"
                                      Command="{Binding NavigateCommand}" CommandParameter="srp" />
 
-                        <TextBlock Text="SPRAVOCHNIKLAR" Style="{StaticResource NavHeader}" />
+                        <TextBlock Text="SPRAVOCHNIKLAR" Style="{StaticResource NavHeader}" Visibility="Collapsed" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="▦" Content="Litologik kodlar"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=litho}"
-                                     Command="{Binding NavigateCommand}" CommandParameter="litho" />
+                                     Command="{Binding NavigateCommand}" CommandParameter="litho"
+                                     Visibility="Collapsed" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◧" Content="Kern ranglari"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=colors}"
-                                     Command="{Binding NavigateCommand}" CommandParameter="colors" />
+                                     Command="{Binding NavigateCommand}" CommandParameter="colors"
+                                     Visibility="Collapsed" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◈" Content="Teksturalar"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=textures}"
-                                     Command="{Binding NavigateCommand}" CommandParameter="textures" />
+                                     Command="{Binding NavigateCommand}" CommandParameter="textures"
+                                     Visibility="Collapsed" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="✦" Content="Mineralizatsiya"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=minerals}"
-                                     Command="{Binding NavigateCommand}" CommandParameter="minerals" />
+                                     Command="{Binding NavigateCommand}" CommandParameter="minerals"
+                                     Visibility="Collapsed" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="✎" Content="Tavsif shablonlari"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=descriptions}"
-                                     Command="{Binding NavigateCommand}" CommandParameter="descriptions" />
+                                     Command="{Binding NavigateCommand}" CommandParameter="descriptions"
+                                     Visibility="Collapsed" />
 
                         <TextBlock Text="BOSHQARUV" Style="{StaticResource NavHeader}" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◎" Content="Loyiha va quduqlar"
