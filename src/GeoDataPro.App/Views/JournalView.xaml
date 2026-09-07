@@ -43,10 +43,17 @@
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
+                            Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
+                    </Border>
                     <Button Content="⭱  Import Excel" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
                             Command="{Binding ImportExcelCommand}" />
                     <Button Content="⭳  Eksport" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
                             Command="{Binding ExportExcelCommand}" />
+                    <Button Content="Saqlash (Ctrl+S)" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
+                            Command="{Binding Journal.SaveCommand}"
+                            Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}" />
                     <Button Content="+  Qator qo'shish" Style="{StaticResource PrimaryButton}"
                             Command="{Binding Journal.AddRowCommand}" />
                 </StackPanel>
@@ -71,6 +78,7 @@
                     <DataGrid x:Name="Grid" ItemsSource="{Binding Journal.Rows}"
                               SelectedItem="{Binding Journal.Selected}"
                               BorderThickness="0" CanUserSortColumns="False"
+                              SelectionMode="Extended" SelectionUnit="FullRow"
                               HorizontalScrollBarVisibility="Auto" MaxWidth="10000"
                               PreparingCellForEdit="Grid_PreparingCellForEdit">
                         <DataGrid.Columns>
@@ -209,13 +217,10 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Jami qatorlar:" Foreground="{StaticResource TextSecondary}" />
                         <TextBlock Text="{Binding Journal.TotalRows}" FontWeight="SemiBold" Margin="6,0,0,0" />
-                        <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="14,0,0,0"
-                                Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}">
-                            <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
+                        <Border Background="{StaticResource BadgeInfoBg}" Style="{StaticResource Badge}" Margin="14,0,0,0"
+                                Visibility="{Binding Journal.SelectedItems.Count, Converter={StaticResource IntToVis}}">
+                            <TextBlock Text="{Binding Journal.SelectedItems.Count, StringFormat='Tanlangan: {0}'}" Foreground="{StaticResource BadgeInfoText}" Style="{StaticResource BadgeText}" />
                         </Border>
-                        <Button Content="Saqlash (Ctrl+S)" Style="{StaticResource PrimaryButton}"
-                                Margin="16,0,0,0" Command="{Binding Journal.SaveCommand}"
-                                Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -245,6 +250,30 @@
                             </StackPanel>
                             <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding RecoveryPercent, Mode=OneWay}"
                                          Foreground="{StaticResource Accent}" Background="{StaticResource GridLine}" Margin="0,0,0,14" />
+
+                            <Grid Margin="0,0,0,4">
+                                <TextBlock Text="ZONA NOMI" Style="{StaticResource Caption}" VerticalAlignment="Center" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Border Background="{StaticResource BadgeInfoBg}" Style="{StaticResource Badge}" Margin="0,0,6,0"
+                                            Visibility="{Binding ZoneNameIsAuto, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="avto" Foreground="{StaticResource BadgeInfoText}" Style="{StaticResource BadgeText}" />
+                                    </Border>
+                                    <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="0,0,6,0"
+                                            Visibility="{Binding ZoneNameIsAuto, Converter={StaticResource InvBoolToVis}}">
+                                        <TextBlock Text="qo'lda" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
+                                    </Border>
+                                    <Button Content="↻ Avto" FontSize="11" Padding="7,3" Cursor="Hand"
+                                            Command="{Binding DataContext.Journal.RegenerateZoneNameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            ToolTip="Zona nomini T/R (tartib raqami) ga qaytarish">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                <Setter Property="MinHeight" Value="0" />
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                            <TextBox Text="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,14" />
 
                             <TextBlock Text="LITOLOGIK KOD" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14"

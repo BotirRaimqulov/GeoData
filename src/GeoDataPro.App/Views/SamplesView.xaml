@@ -42,6 +42,14 @@
                               SelectedValue="{Binding SelectedSampleTypeCode, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Border Background="{StaticResource BadgeInfoBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
+                            Visibility="{Binding SelectedItems.Count, Converter={StaticResource IntToVis}}">
+                        <TextBlock Text="{Binding SelectedItems.Count, StringFormat='Tanlangan: {0}'}" Foreground="{StaticResource BadgeInfoText}" Style="{StaticResource BadgeText}" />
+                    </Border>
+                    <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
+                            Visibility="{Binding HasUnsaved, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
+                    </Border>
                     <Button Content="+  Namuna qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" />
                     <Button Content="O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" />
                     <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" />
@@ -50,7 +58,9 @@
         </Border>
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
-            <DataGrid ItemsSource="{Binding FilteredRows}" SelectedItem="{Binding Selected}" BorderThickness="0">
+            <DataGrid x:Name="Grid" ItemsSource="{Binding FilteredRows}" SelectedItem="{Binding Selected}"
+                      SelectionMode="Extended" SelectionUnit="FullRow" BorderThickness="0"
+                      SelectionChanged="Grid_SelectionChanged">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Tartib raqam" Binding="{Binding DisplayOrder}" IsReadOnly="True" Width="1*" MinWidth="100" />
                     <DataGridTextColumn Header="Namuna raqami" Binding="{Binding SampleNumber, UpdateSourceTrigger=PropertyChanged}" Width="1.4*" MinWidth="140" />

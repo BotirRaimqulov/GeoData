@@ -19,6 +19,14 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding Title}" Style="{StaticResource H1}" VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Border Background="{StaticResource BadgeInfoBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
+                            Visibility="{Binding SelectedItems.Count, Converter={StaticResource IntToVis}}">
+                        <TextBlock Text="{Binding SelectedItems.Count, StringFormat='Tanlangan: {0}'}" Foreground="{StaticResource BadgeInfoText}" Style="{StaticResource BadgeText}" />
+                    </Border>
+                    <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
+                            Visibility="{Binding HasUnsaved, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
+                    </Border>
                     <Button Content="+  Qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" />
                     <Button Content="O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" />
                     <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" />
@@ -28,7 +36,9 @@
 
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
             <Grid>
-                <DataGrid ItemsSource="{Binding Litho}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                <DataGrid x:Name="LithoGrid" ItemsSource="{Binding Litho}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                          SelectionMode="Extended" SelectionUnit="FullRow"
+                          SelectionChanged="Grid_SelectionChanged"
                           Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Litho}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="60" />
@@ -85,7 +95,9 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <DataGrid ItemsSource="{Binding Colors}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                <DataGrid x:Name="ColorsGrid" ItemsSource="{Binding Colors}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                          SelectionMode="Extended" SelectionUnit="FullRow"
+                          SelectionChanged="Grid_SelectionChanged"
                           Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Color}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="60" />
@@ -120,7 +132,9 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <DataGrid ItemsSource="{Binding Textures}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                <DataGrid x:Name="TexturesGrid" ItemsSource="{Binding Textures}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                          SelectionMode="Extended" SelectionUnit="FullRow"
+                          SelectionChanged="Grid_SelectionChanged"
                           Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Texture}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="60" />
@@ -151,7 +165,9 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <DataGrid ItemsSource="{Binding Minerals}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                <DataGrid x:Name="MineralsGrid" ItemsSource="{Binding Minerals}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                          SelectionMode="Extended" SelectionUnit="FullRow"
+                          SelectionChanged="Grid_SelectionChanged"
                           Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Mineral}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="60" />
@@ -194,6 +210,8 @@
                 </DataGrid>
 
                 <DataGrid x:Name="DescGrid" ItemsSource="{Binding Descriptions}" SelectedItem="{Binding Selected}" BorderThickness="0"
+                          SelectionMode="Extended" SelectionUnit="FullRow"
+                          SelectionChanged="Grid_SelectionChanged"
                           Visibility="{Binding CurrentKind, Converter={StaticResource EnumVis}, ConverterParameter=Description}"
                           PreparingCellForEdit="DescGrid_PreparingCellForEdit">
                     <DataGrid.Columns>

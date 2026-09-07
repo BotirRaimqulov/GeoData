@@ -17,8 +17,46 @@ public partial class JournalView : UserControl
     public JournalView()
     {
         InitializeComponent();
+        Loaded += JournalView_Loaded;
         DescBox.SelectionChanged += DescBox_SelectionChanged;
     }
+
+    /// <summary>
+    /// DataGrid ko'p tanlovni (Ctrl+Click / Shift+Click) ViewModel.SelectedItems bilan sinxronlaydi.
+    /// WPF DataGrid.SelectedItems faqat o'qish uchun — koddan binding qilib bo'lmaydi,
+    /// shu sababli SelectionChanged event orqali qo'lda sinxronlaymiz.
+    /// </summary>
+    void JournalView_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (Grid == null) return;
+        Grid.SelectionChanged -= Grid_SelectionChanged;
+        Grid.SelectionChanged += Grid_SelectionChanged;
+    }
+
+    void Grid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var vm = DataContext as MainViewModel;
+        var journal = vm?.Journal;
+        if (journal == null) return;
+
+        // Tashqaridan o'zgartirish (dasturiy) ekanligini bildiruvchi flag.
+        if (_syncingSelection) return;
+        _syncingSelection = true;
+        try
+        {
+            foreach (var removed in e.RemovedItems.OfType<JournalRowVm>())
+                journal.SelectedItems.Remove(removed);
+            foreach (var added in e.AddedItems.OfType<JournalRowVm>())
+                if (!journal.SelectedItems.Contains(added))
+                    journal.SelectedItems.Add(added);
+        }
+        finally
+        {
+            _syncingSelection = false;
+        }
+    }
+
+    bool _syncingSelection;
 
     /// <summary>
     /// Litol. kod / Rang / Tekstura ustunlari ComboBox bilan tahrirlanadi. Standart DataGrid
