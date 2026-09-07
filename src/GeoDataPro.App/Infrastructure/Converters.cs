@@ -100,6 +100,27 @@ public class BoolToVisibilityConverter : IValueConverter
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => Binding.DoNothing;
 }
 
+/// <summary>Int (yoki Count) > 0 bo'lsa Visible, aks holda Collapsed.</summary>
+public class IntToVisibilityConverter : IValueConverter
+{
+    public bool Invert { get; set; }
+    public object Convert(object? value, Type t, object? parameter, CultureInfo c)
+    {
+        int n = value switch
+        {
+            int i => i,
+            long l => (int)l,
+            System.Collections.ICollection col => col.Count,
+            System.Collections.IEnumerable en => en.Cast<object?>().Count(),
+            _ => 0,
+        };
+        bool show = n > 0;
+        if (Invert) show = !show;
+        return show ? Visibility.Visible : Visibility.Collapsed;
+    }
+    public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => Binding.DoNothing;
+}
+
 public class PercentageBadgeBrushConverter : IValueConverter
 {
     public object Convert(object? value, Type t, object? parameter, CultureInfo c)
