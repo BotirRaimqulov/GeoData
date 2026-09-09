@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<ColorCode> ColorCodes => Set<ColorCode>();
     public DbSet<TextureCode> TextureCodes => Set<TextureCode>();
     public DbSet<MineralCode> MineralCodes => Set<MineralCode>();
+    public DbSet<FloraFaunaCode> FloraFaunaCodes => Set<FloraFaunaCode>();
     public DbSet<DescriptionTemplate> DescriptionTemplates => Set<DescriptionTemplate>();
     public DbSet<JournalRow> JournalRows => Set<JournalRow>();
     public DbSet<SampleRow> SampleRows => Set<SampleRow>();
@@ -42,6 +43,7 @@ public class AppDbContext : DbContext
         b.Entity<ColorCode>().HasIndex(x => x.Code).IsUnique();
         b.Entity<TextureCode>().HasIndex(x => x.Code).IsUnique();
         b.Entity<MineralCode>().HasIndex(x => x.Code).IsUnique();
+        b.Entity<FloraFaunaCode>().HasIndex(x => x.Code).IsUnique();
     }
 
     /// <summary>Bazani yaratadi va spravochniklarni seed qiladi.</summary>
@@ -82,6 +84,28 @@ public class AppDbContext : DbContext
             }
         }
 
+        // EnsureCreated() eski (allaqachon yaratilgan) bazalarga yangi DbSet uchun jadval
+        // ham qo'shmaydi — shu sabab FloraFaunaCodes jadvalini qo'lda, xavfsiz tarzda yaratamiz.
+        void EnsureTable(string table, string createSql, string? indexSql = null)
+        {
+            var existsSql = $"SELECT COUNT(*) AS \"Value\" FROM sqlite_master WHERE type = 'table' AND name = '{table}'";
+            var exists = Database.SqlQueryRaw<int>(existsSql)
+                .AsEnumerable().FirstOrDefault();
+            if (exists != 0) return;
+
+            Database.ExecuteSqlRaw(createSql);
+            if (indexSql != null) Database.ExecuteSqlRaw(indexSql);
+        }
+
+        EnsureTable("FloraFaunaCodes",
+            "CREATE TABLE \"FloraFaunaCodes\" (" +
+            "\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_FloraFaunaCodes\" PRIMARY KEY AUTOINCREMENT, " +
+            "\"Code\" INTEGER NOT NULL, " +
+            "\"Name\" TEXT NOT NULL, " +
+            "\"NameRu\" TEXT NULL, " +
+            "\"PatternKey\" TEXT NULL)",
+            "CREATE UNIQUE INDEX \"IX_FloraFaunaCodes_Code\" ON \"FloraFaunaCodes\" (\"Code\")");
+
         AddColumn("LithoCodes", "NameRu", "TEXT NULL");
         AddColumn("ColorCodes", "NameRu", "TEXT NULL");
         AddColumn("TextureCodes", "NameRu", "TEXT NULL");
@@ -89,7 +113,9 @@ public class AppDbContext : DbContext
 
         AddColumn("JournalRows", "MineralCode", "INTEGER NULL");
         AddColumn("JournalRows", "GrainSize", "TEXT NULL");
-        RemoveColumn("JournalRows", "Hardness");
+        AddColumn("JournalRows", "Hardness", "TEXT NULL");
+        AddColumn("JournalRows", "Cementation", "TEXT NULL");
+        AddColumn("JournalRows", "FloraFaunaCode", "INTEGER NULL");
         RemoveColumn("JournalRows", "CarbonateCo2");
         AddColumn("DescriptionTemplates", "LithoCode", "INTEGER NULL");
         AddColumn("DescriptionTemplates", "ColorCode", "INTEGER NULL");

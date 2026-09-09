@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -28,6 +29,16 @@ public static class Seed
             db.MineralCodes.AddRange(MineralSeed());
             db.SaveChanges();
         }
+        if (!db.FloraFaunaCodes.Any())
+        {
+            db.FloraFaunaCodes.AddRange(FloraFaunaSeed());
+            db.SaveChanges();
+        }
+
+        // Eski bazalarda flora-fauna qoldiqlari "Mineralizatsiya" spravochnigida saqlangan edi —
+        // ularni alohida Flora-Fauna spravochnigiga ko'chiramiz (bir marta, keyingi ishga
+        // tushirishlarda mos nom topilmagani uchun hech narsa o'zgarmaydi).
+        MigrateOrganicRemainsFromMinerals(db);
 
         BackfillRussianNames(db);
         if (!db.DescriptionTemplates.Any())
@@ -156,7 +167,8 @@ public static class Seed
         return TextureRows.Select(r => new TextureCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
     }
 
-    // ---- Mineralizatsiya: "Минерализация/" papkasi ----
+    // ---- Mineralizatsiya: "Минерализация/" papkasi (faqat avtigen minerallar — Pirit/Gips
+    // turlari; flora-fauna qoldiqlari FloraFaunaRows ro'yxatida alohida saqlanadi) ----
     // (o'zbekcha, ruscha, png)
     static readonly (string uz, string ru, string png)[] MineralRows =
     {
@@ -173,20 +185,87 @@ public static class Seed
         ("Loyqa tuproqli",                                    "Ожелезнённый (глинистый)",                      "loyqa_tuproqli.png"),
         ("Yupqa dispersli (sochiluvchan)",                  "Тонкодисперсный (рассеянный)",                  "yupqa_dispersli_sochiluvchan.png"),
         ("Yupqa donali, massiv",                            "Тонкозернистый, массивный (в т.ч. ангидрит)",   "yupqa_donali_massiv_jumladan_angidrit.png"),
-        ("Ko'mir qoldiqlari (detrit)",                       "Углистый детрит",                               "komir_qoldiqlari_detrit.png"),
-        ("O‘simlik ildizlari",                               "Корни растений",                                "osimlik_ildizlari.png"),
-        ("Yirik uglerodli yog‘och parchalari",              "Крупные обугленные обломки древесины",          "yirik_uglerodli_yogoch_parchalari.png"),
-        ("Yog‘ochning kremniylashgan bo‘lakchalari",        "Окремнелые обломки древесины",                  "yogochning_kremniylashgan_bolakchalari.png"),
-        ("Akula tishi",                                       "Зуб акулы",                                     "akula_tishi.png"),
-        ("Yelkaoyoqlilar",                                    "Брахиоподы",                                    "yelkaoyoqlilar.png"),
-        ("Ko'p tarqalgan malyuskalar turi",                  "Распространённые виды моллюсков",               "kop_tarqalgan_malyuskalar_turi.png"),
-        ("Quruqlikdagi umurtqali hayvonlarning suyaklari",  "Кости наземных позвоночных",                    "quruqlikdagi_umurtqali_hayvonlarning_suyaklari.png"),
     };
 
     static IEnumerable<MineralCode> MineralSeed()
     {
         int c = 1;
         return MineralRows.Select(r => new MineralCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
+    }
+
+    // ---- Flora-Fauna: o'simlik/hayvon qoldiqlari va autigen minerallashuv izlari ----
+    // ("Остатки флоры и фауны и аутигенная минерализация" jadvalidan o'zbek tiliga tarjima)
+    // (o'zbekcha, ruscha, png)
+    static readonly (string uz, string ru, string? png)[] FloraFaunaRows =
+    {
+        ("Ko'mir qoldiqlari (detrit)",                       "Углистые остатки (детрит)",                     "komir_qoldiqlari_detrit.png"),
+        ("Yirik uglerodli yog‘och parchalari",              "Крупные углефицированные обломки древесины",    "yirik_uglerodli_yogoch_parchalari.png"),
+        ("Yog‘ochning kremniylashgan bo‘lakchalari",        "Окремнелые обломки древесины",                  "yogochning_kremniylashgan_bolakchalari.png"),
+        ("O‘simlik ildizlari",                               "Корни растений",                                "osimlik_ildizlari.png"),
+        ("Baliq suyaklarining fosfatli qoldiqlari",         "Фосфатные костные остатки рыб",                 "baliq_suyagining_fosfat_qoldiqlari.png"),
+        ("Akula tishi",                                       "Зубы акул",                                     "akula_tishi.png"),
+        ("Quruqlikdagi umurtqali hayvonlarning suyaklari",  "Кости наземных позвоночных",                    "quruqlikdagi_umurtqali_hayvonlarning_suyaklari.png"),
+        ("Gastropodalar",                                     "Гастраподы",                                    null),
+        ("Yelkaoyoqlilar (braxiopodalar)",                  "Брахиоподы",                                    "yelkaoyoqlilar.png"),
+        ("Ko'p tarqalgan malyuskalar turi",                  "Распространённые виды моллюсков",               "kop_tarqalgan_malyuskalar_turi.png"),
+    };
+
+    static IEnumerable<FloraFaunaCode> FloraFaunaSeed()
+    {
+        int c = 1;
+        return FloraFaunaRows.Select(r => new FloraFaunaCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
+    }
+
+    /// <summary>
+    /// Eski bazalarda flora-fauna qoldiqlari (Mineralizatsiya spravochnigida saqlangan
+    /// "Ko'mir qoldiqlari", "Akula tishi" va h.k.) endi Flora-Fauna spravochnigiga ko'chiriladi:
+    /// mos Dala jurnali qatorlaridagi MineralCode -> FloraFaunaCode ga o'tkaziladi, so'ng eski
+    /// Mineral yozuvi o'chiriladi. Nomi allaqachon ko'chirilgan (Mineral ro'yxatida topilmagan)
+    /// bazalarda bu metod hech narsa qilmaydi.
+    /// </summary>
+    static readonly string[] FloraFaunaMigratedFromMineral =
+    {
+        "Ko'mir qoldiqlari (detrit)",
+        "O‘simlik ildizlari",
+        "Yirik uglerodli yog‘och parchalari",
+        "Yog‘ochning kremniylashgan bo‘lakchalari",
+        "Akula tishi",
+        "Yelkaoyoqlilar",
+        "Ko'p tarqalgan malyuskalar turi",
+        "Quruqlikdagi umurtqali hayvonlarning suyaklari",
+    };
+
+    static void MigrateOrganicRemainsFromMinerals(AppDbContext db)
+    {
+        var movedNames = new HashSet<string>(FloraFaunaMigratedFromMineral, StringComparer.Ordinal);
+        var stale = db.MineralCodes.Where(m => movedNames.Contains(m.Name)).ToList();
+        if (stale.Count == 0) return;
+
+        // "Yelkaoyoqlilar" eski nomi yangi Flora-Fauna ro'yxatida "Yelkaoyoqlilar (braxiopodalar)"
+        // sifatida saqlangan — nom bo'yicha moslashtirish uchun alohida xarita kerak.
+        var renameMap = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["Yelkaoyoqlilar"] = "Yelkaoyoqlilar (braxiopodalar)",
+        };
+
+        var floraByName = db.FloraFaunaCodes.ToDictionary(f => f.Name, StringComparer.Ordinal);
+        bool changed = false;
+        foreach (var old in stale)
+        {
+            var newName = renameMap.TryGetValue(old.Name, out var mapped) ? mapped : old.Name;
+            if (!floraByName.TryGetValue(newName, out var flora)) continue;
+
+            foreach (var row in db.JournalRows.Where(r => r.MineralCode == old.Code))
+            {
+                row.FloraFaunaCode = flora.Code;
+                row.MineralCode = null;
+                changed = true;
+            }
+            db.MineralCodes.Remove(old);
+            changed = true;
+        }
+
+        if (changed) db.SaveChanges();
     }
 
     /// <summary>Eski bazalarda NameRu bo'sh qatorlarni ruscha nom bilan to'ldiradi (kod bo'yicha).</summary>
@@ -209,6 +288,10 @@ public static class Seed
         var mineralRu = MineralRows.ToDictionary(r => r.uz, r => r.ru);
         foreach (var x in db.MineralCodes.Where(x => x.NameRu == null || x.NameRu == ""))
             if (mineralRu.TryGetValue(x.Name, out var ru)) { x.NameRu = ru; changed = true; }
+
+        var floraFaunaRu = FloraFaunaRows.ToDictionary(r => r.uz, r => r.ru);
+        foreach (var x in db.FloraFaunaCodes.Where(x => x.NameRu == null || x.NameRu == ""))
+            if (floraFaunaRu.TryGetValue(x.Name, out var ru)) { x.NameRu = ru; changed = true; }
 
         if (changed) db.SaveChanges();
     }

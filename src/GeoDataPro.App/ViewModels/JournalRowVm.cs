@@ -9,6 +9,10 @@ public partial class JournalRowVm : ObservableObject
 {
     /// <summary>Donadorlik uchun ruxsat etilgan qiymatlar (Kern tavsifi popup'ida ham ishlatiladi).</summary>
     public static readonly string[] GrainSizes = { "mayda", "o'rta", "yirik" };
+    /// <summary>Qattiqligi uchun ruxsat etilgan qiymatlar (Kern tavsifi popup'ida ham ishlatiladi).</summary>
+    public static readonly string[] Hardnesses = { "yumshoq", "o'rta", "qattiq" };
+    /// <summary>Sementlashuvi uchun ruxsat etilgan qiymatlar (Kern tavsifi popup'ida ham ishlatiladi).</summary>
+    public static readonly string[] Cementations = { "sementlashmagan", "zaif sementlangan", "o'rta sementlangan", "kuchli sementlangan" };
 
     public JournalRow Model { get; }
 
@@ -33,8 +37,11 @@ public partial class JournalRowVm : ObservableObject
         _lithoCode = model.LithoCode;
         _colorCode = model.ColorCode;
         _textureCode = model.TextureCode;
-        _mineralCode = model.MineralCode;
         _grainSize = model.GrainSize;
+        _hardness = model.Hardness;
+        _cementation = model.Cementation;
+        _mineralCode = model.MineralCode;
+        _floraFaunaCode = model.FloraFaunaCode;
         _description = model.Description;
         _lastAuto = BuildAutoDescription();
         // Tavsif bo'sh yoki hozirgi avto-natijaga teng bo'lsa — avto rejimda.
@@ -83,9 +90,14 @@ public partial class JournalRowVm : ObservableObject
     [ObservableProperty] private int? _lithoCode;
     [ObservableProperty] private int? _colorCode;
     [ObservableProperty] private int? _textureCode;
-    [ObservableProperty] private int? _mineralCode;
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     [ObservableProperty] private string? _grainSize;
+    /// <summary>Qattiqligi: "yumshoq" / "o'rta" / "qattiq" yoki bo'sh.</summary>
+    [ObservableProperty] private string? _hardness;
+    /// <summary>Sementlashuvi darajasi yoki bo'sh.</summary>
+    [ObservableProperty] private string? _cementation;
+    [ObservableProperty] private int? _mineralCode;
+    [ObservableProperty] private int? _floraFaunaCode;
     [ObservableProperty] private string? _description;
 
     public bool IsDirty { get; private set; }
@@ -156,8 +168,11 @@ public partial class JournalRowVm : ObservableObject
     partial void OnLithoCodeChanged(int? value) { Model.LithoCode = value; Touch(); OnPropertyChanged(nameof(LithoDisplay)); OnPropertyChanged(nameof(LithoPattern)); AutoFillDescription(); }
     partial void OnColorCodeChanged(int? value) { Model.ColorCode = value; Touch(); OnPropertyChanged(nameof(ColorDisplay)); OnPropertyChanged(nameof(ColorHex)); AutoFillDescription(); }
     partial void OnTextureCodeChanged(int? value) { Model.TextureCode = value; Touch(); OnPropertyChanged(nameof(TextureDisplay)); AutoFillDescription(); }
-    partial void OnMineralCodeChanged(int? value) { Model.MineralCode = value; Touch(); OnPropertyChanged(nameof(MineralDisplay)); AutoFillDescription(); }
     partial void OnGrainSizeChanged(string? value) { Model.GrainSize = value; Touch(); AutoFillDescription(); }
+    partial void OnHardnessChanged(string? value) { Model.Hardness = value; Touch(); AutoFillDescription(); }
+    partial void OnCementationChanged(string? value) { Model.Cementation = value; Touch(); AutoFillDescription(); }
+    partial void OnMineralCodeChanged(int? value) { Model.MineralCode = value; Touch(); OnPropertyChanged(nameof(MineralDisplay)); AutoFillDescription(); }
+    partial void OnFloraFaunaCodeChanged(int? value) { Model.FloraFaunaCode = value; Touch(); OnPropertyChanged(nameof(FloraFaunaDisplay)); AutoFillDescription(); }
 
     bool _suppressDescNotify;
     partial void OnDescriptionChanged(string? value)
@@ -201,13 +216,18 @@ public partial class JournalRowVm : ObservableObject
         var head = string.Join(" ", new[] { litho, Lower(color) }.Where(s => !string.IsNullOrWhiteSpace(s)));
         if (!string.IsNullOrWhiteSpace(head)) parts.Add(head);
 
-        if (!string.IsNullOrWhiteSpace(GrainSize)) parts.Add($"{Lower(GrainSize)} donador");
-
         var texture = r.Texture4(TextureCode)?.Name;
         if (!string.IsNullOrWhiteSpace(texture)) parts.Add(Lower(texture)!);
 
+        if (!string.IsNullOrWhiteSpace(GrainSize)) parts.Add($"{Lower(GrainSize)} donador");
+        if (!string.IsNullOrWhiteSpace(Hardness)) parts.Add(Lower(Hardness)!);
+        if (!string.IsNullOrWhiteSpace(Cementation)) parts.Add(Lower(Cementation)!);
+
         var mineral = r.Mineral4(MineralCode)?.Name;
         if (!string.IsNullOrWhiteSpace(mineral)) parts.Add(Lower(mineral)!);
+
+        var floraFauna = r.FloraFauna4(FloraFaunaCode)?.Name;
+        if (!string.IsNullOrWhiteSpace(floraFauna)) parts.Add(Lower(floraFauna)!);
 
         return string.Join(", ", parts);
 
@@ -319,4 +339,5 @@ public partial class JournalRowVm : ObservableObject
 
     public string TextureDisplay => RefCache.Instance.Texture4(TextureCode)?.Name ?? "";
     public string MineralDisplay => RefCache.Instance.Mineral4(MineralCode)?.Name ?? "";
+    public string FloraFaunaDisplay => RefCache.Instance.FloraFauna4(FloraFaunaCode)?.Name ?? "";
 }

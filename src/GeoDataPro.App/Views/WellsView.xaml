@@ -42,7 +42,8 @@
                                 Command="{Binding DeleteWellCommand}" />
                     </StackPanel>
                 </Grid>
-                <DataGrid ItemsSource="{Binding Wells}" SelectedItem="{Binding SelectedWell}" BorderThickness="0" IsReadOnly="True">
+                <DataGrid ItemsSource="{Binding Wells}" SelectedItem="{Binding SelectedWell}" BorderThickness="0" IsReadOnly="True"
+                          HorizontalScrollBarVisibility="Auto" MaxWidth="10000">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Quduq" Binding="{Binding Number}" Width="110" />
                         <DataGridTextColumn Header="Boshlanish" Binding="{Binding StartDepth, StringFormat={}{0:0.#}}" Width="110" />

@@ -24,6 +24,7 @@ public partial class MainViewModel : ObservableObject
     public ReferenceViewModel ColorRef { get; } = new(ReferenceViewModel.Kind.Color);
     public ReferenceViewModel TextureRef { get; } = new(ReferenceViewModel.Kind.Texture);
     public ReferenceViewModel MineralRef { get; } = new(ReferenceViewModel.Kind.Mineral);
+    public ReferenceViewModel FloraFaunaRef { get; } = new(ReferenceViewModel.Kind.FloraFauna);
     public ReferenceViewModel DescriptionRef { get; } = new(ReferenceViewModel.Kind.Description);
 
     [ObservableProperty]
@@ -39,6 +40,7 @@ public partial class MainViewModel : ObservableObject
         "colors" => "Kern ranglari",
         "textures" => "Teksturalar",
         "minerals" => "Mineralizatsiya",
+        "florafauna" => "Flora-Fauna",
         "descriptions" => "Tavsif shablonlari",
         "wells" => "Loyiha va quduq boshqaruvi",
         "io" => "Import / Eksport",
@@ -71,6 +73,7 @@ public partial class MainViewModel : ObservableObject
         SubscribeUnsaved(ColorRef, nameof(ReferenceViewModel.HasUnsaved));
         SubscribeUnsaved(TextureRef, nameof(ReferenceViewModel.HasUnsaved));
         SubscribeUnsaved(MineralRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(FloraFaunaRef, nameof(ReferenceViewModel.HasUnsaved));
         SubscribeUnsaved(DescriptionRef, nameof(ReferenceViewModel.HasUnsaved));
     }
 
@@ -88,7 +91,7 @@ public partial class MainViewModel : ObservableObject
         bool anyUnsaved = Journal.HasUnsaved || Samples.HasUnsaved || Srp.HasUnsaved
                           || Wells.HasUnsaved
                           || LithoRef.HasUnsaved || ColorRef.HasUnsaved || TextureRef.HasUnsaved
-                          || MineralRef.HasUnsaved || DescriptionRef.HasUnsaved;
+                          || MineralRef.HasUnsaved || FloraFaunaRef.HasUnsaved || DescriptionRef.HasUnsaved;
         StatusText = anyUnsaved ? "Saqlanmagan o'zgarishlar bor" : "Barcha o'zgarishlar saqlangan";
     }
 

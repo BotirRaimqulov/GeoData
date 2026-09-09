@@ -60,6 +60,7 @@
         <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
             <DataGrid x:Name="Grid" ItemsSource="{Binding FilteredRows}" SelectedItem="{Binding Selected}"
                       SelectionMode="Extended" SelectionUnit="FullRow" BorderThickness="0"
+                      HorizontalScrollBarVisibility="Auto" MaxWidth="10000"
                       SelectionChanged="Grid_SelectionChanged">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Tartib raqam" Binding="{Binding DisplayOrder}" IsReadOnly="True" Width="1*" MinWidth="100" />

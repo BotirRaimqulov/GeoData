@@ -17,7 +17,7 @@ public partial class ReferenceView : UserControl
 
     void ReferenceView_Loaded(object sender, System.Windows.RoutedEventArgs e)
     {
-        foreach (var grid in new[] { LithoGrid, ColorsGrid, TexturesGrid, MineralsGrid, DescGrid })
+        foreach (var grid in new[] { LithoGrid, ColorsGrid, TexturesGrid, MineralsGrid, FloraFaunaGrid, DescGrid })
         {
             if (grid == null) continue;
             grid.SelectionChanged -= Grid_SelectionChanged;

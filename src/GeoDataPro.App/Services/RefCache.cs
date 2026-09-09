@@ -11,12 +11,14 @@ public class RefCache
     public List<ColorCode> Colors { get; private set; } = new();
     public List<TextureCode> Textures { get; private set; } = new();
     public List<MineralCode> Minerals { get; private set; } = new();
+    public List<FloraFaunaCode> FloraFauna { get; private set; } = new();
     public List<DescriptionTemplate> Descriptions { get; private set; } = new();
 
     Dictionary<int, LithoCode> _litho = new();
     Dictionary<int, ColorCode> _color = new();
     Dictionary<int, TextureCode> _texture = new();
     Dictionary<int, MineralCode> _mineral = new();
+    Dictionary<int, FloraFaunaCode> _floraFauna = new();
 
     public void Reload()
     {
@@ -25,18 +27,21 @@ public class RefCache
         Colors = db.ColorCodes.OrderBy(x => x.Code).ToList();
         Textures = db.TextureCodes.OrderBy(x => x.Code).ToList();
         Minerals = db.MineralCodes.OrderBy(x => x.Code).ToList();
+        FloraFauna = db.FloraFaunaCodes.OrderBy(x => x.Code).ToList();
         Descriptions = db.DescriptionTemplates.OrderBy(x => x.Text).ToList();
 
         _litho = Litho.ToDictionary(x => x.Code);
         _color = Colors.ToDictionary(x => x.Code);
         _texture = Textures.ToDictionary(x => x.Code);
         _mineral = Minerals.ToDictionary(x => x.Code);
+        _floraFauna = FloraFauna.ToDictionary(x => x.Code);
     }
 
     public LithoCode? Litho4(int? code) => code is int c && _litho.TryGetValue(c, out var v) ? v : null;
     public ColorCode? Color4(int? code) => code is int c && _color.TryGetValue(c, out var v) ? v : null;
     public TextureCode? Texture4(int? code) => code is int c && _texture.TryGetValue(c, out var v) ? v : null;
     public MineralCode? Mineral4(int? code) => code is int c && _mineral.TryGetValue(c, out var v) ? v : null;
+    public FloraFaunaCode? FloraFauna4(int? code) => code is int c && _floraFauna.TryGetValue(c, out var v) ? v : null;
 
     /// <summary>
     /// Litho/rang/tekstura/mineral/donadorlik kombinatsiyasiga eng mos shablonni topadi.

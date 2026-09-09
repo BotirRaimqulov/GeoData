@@ -88,6 +88,18 @@ public class MineralCode
     public string? PatternKey { get; set; }
 }
 
+/// <summary>Flora-fauna qoldiqlari spravochnigi (o'simlik/hayvon izlari, chig'anoqlar va h.k.).</summary>
+public class FloraFaunaCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    /// <summary>O'zbekcha nomi.</summary>
+    public string Name { get; set; } = "";
+    /// <summary>Ruscha nomi (остатки флоры и фауны).</summary>
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
 /// <summary>
 /// Tasnif / description shabloni. Litho/rang/tekstura/mineral/donadorlik maydonlari
 /// ixtiyoriy — to'ldirilgan maydon shu qiymatga mos bo'lishi shart, bo'sh maydon esa
@@ -119,12 +131,22 @@ public class JournalRow
     /// <summary>Kern chiqishi (m).</summary>
     public double CoreRecoveryM { get; set; }
     public string? ZoneName { get; set; }
+
+    // Quyidagi maydonlar tartibi (Litologiya, Rangi, Tarkibi, Donadorligi, Qattiqligi,
+    // Sementlashuvi, Mineralizatsiya, Flora-Fauna) Dala jurnali jadvalidagi ustunlar
+    // ketma-ketligiga va shu ustunlardan hosil bo'ladigan select-option ro'yxatlariga mos.
     public int? LithoCode { get; set; }
     public int? ColorCode { get; set; }
+    /// <summary>Tarkibi (tekstura spravochnigi).</summary>
     public int? TextureCode { get; set; }
-    public int? MineralCode { get; set; }
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     public string? GrainSize { get; set; }
+    /// <summary>Qattiqligi: "yumshoq" / "o'rta" / "qattiq" yoki bo'sh.</summary>
+    public string? Hardness { get; set; }
+    /// <summary>Sementlashuvi darajasi yoki bo'sh.</summary>
+    public string? Cementation { get; set; }
+    public int? MineralCode { get; set; }
+    public int? FloraFaunaCode { get; set; }
     public string? Description { get; set; }
 
     public double Interval => System.Math.Round(Bottom - Top, 3);

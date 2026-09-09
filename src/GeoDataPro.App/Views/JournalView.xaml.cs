@@ -147,10 +147,14 @@ public partial class JournalView : UserControl
         var color = rc.Colors.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
         var texture = rc.Textures.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
         var mineral = rc.Minerals.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
+        var floraFauna = rc.FloraFauna.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
         var grain = JournalRowVm.GrainSizes.FirstOrDefault(g => string.Equals(g, word, StringComparison.OrdinalIgnoreCase));
+        var hardness = JournalRowVm.Hardnesses.FirstOrDefault(g => string.Equals(g, word, StringComparison.OrdinalIgnoreCase));
+        var cementation = JournalRowVm.Cementations.FirstOrDefault(g => string.Equals(g, word, StringComparison.OrdinalIgnoreCase));
 
         int hits = (litho != null ? 1 : 0) + (color != null ? 1 : 0) + (texture != null ? 1 : 0)
-                 + (mineral != null ? 1 : 0) + (grain != null ? 1 : 0);
+                 + (mineral != null ? 1 : 0) + (floraFauna != null ? 1 : 0) + (grain != null ? 1 : 0)
+                 + (hardness != null ? 1 : 0) + (cementation != null ? 1 : 0);
 
         if (hits == 1)
         {
@@ -170,7 +174,7 @@ public partial class JournalView : UserControl
             }
             if (texture != null)
             {
-                category = "Tekstura";
+                category = "Tarkibi";
                 options = rc.Textures.Where(x => x.Code != texture.Code).Select(x => ((object?)x.Code, x.Name)).ToList();
                 apply = v => row.TextureCode = (int?)v;
                 return true;
@@ -180,6 +184,29 @@ public partial class JournalView : UserControl
                 category = "Mineralizatsiya";
                 options = rc.Minerals.Where(x => x.Code != mineral.Code).Select(x => ((object?)x.Code, x.Name)).ToList();
                 apply = v => row.MineralCode = (int?)v;
+                return true;
+            }
+            if (floraFauna != null)
+            {
+                category = "Flora-Fauna";
+                options = rc.FloraFauna.Where(x => x.Code != floraFauna.Code).Select(x => ((object?)x.Code, x.Name)).ToList();
+                apply = v => row.FloraFaunaCode = (int?)v;
+                return true;
+            }
+            if (hardness != null)
+            {
+                category = "Qattiqligi";
+                options = JournalRowVm.Hardnesses.Where(g => !string.Equals(g, hardness, StringComparison.OrdinalIgnoreCase))
+                                                  .Select(g => ((object?)g, Capitalize(g))).ToList();
+                apply = v => row.Hardness = (string?)v;
+                return true;
+            }
+            if (cementation != null)
+            {
+                category = "Sementlashuvi";
+                options = JournalRowVm.Cementations.Where(g => !string.Equals(g, cementation, StringComparison.OrdinalIgnoreCase))
+                                                    .Select(g => ((object?)g, Capitalize(g))).ToList();
+                apply = v => row.Cementation = (string?)v;
                 return true;
             }
             // grain != null
