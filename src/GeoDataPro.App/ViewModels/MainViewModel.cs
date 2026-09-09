@@ -120,44 +120,208 @@ public partial class MainViewModel : ObservableObject
         Wells.Load();
     }
 
-    // ---------------- Import / Export ----------------
+    // ---------------- Import / Export (multi-well + loyiha) ----------------
+
+    /// <summary>
+    /// Excel import: barcha quduqlar uchun.
+    /// - Mavjud loyihaga qo'shish yoki yangi loyiha yaratish mumkin.
+    /// - Excel dagi Well Name bo'yicha quduq topilmasa — avtomatik yaratiladi.
+    /// </summary>
     [RelayCommand]
     void ImportExcel()
     {
-        var well = State.CurrentWell;
-        if (well == null) { Warn("Avval quduq tanlang."); return; }
-        var dlg = new OpenFileDialog { Filter = "Excel (*.xlsx)|*.xlsx", Title = "Excel import" };
+        var dlg = new OpenFileDialog { Filter = "Excel (*.xlsx)|*.xlsx", Title = "Excel import (barcha quduqlar)" };
         if (dlg.ShowDialog() != true) return;
+
+        // Loyiha tanlash / yangi yaratish
+        var projectChoice = AskProjectForImport();
+        if (projectChoice == null) return; // bekor qilindi
+
         try
         {
-            int j = 0, s = 0, k = 0;
-            try { j = ExcelService.ImportJournal(dlg.FileName, well.Id); } catch (Exception ex) { AppNotifier.Error(ex.Message, ex.InnerException ?? ex); }
-            try { s = ExcelService.ImportSamples(dlg.FileName, well.Id); } catch (Exception ex) { AppNotifier.Error(ex.Message, ex.InnerException ?? ex); }
-            try { k = ExcelService.ImportSrp(dlg.FileName, well.Id, well.Number); } catch (Exception ex) { AppNotifier.Error(ex.Message, ex.InnerException ?? ex); }
-            Journal.Load(); Samples.Load(); Srp.Load();
-            MessageBox.Show($"Import tugadi:\n  Dala jurnali: {j} qator\n  Namuna: {s} qator\n  SRP: {k} nuqta",
-                "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+            ExcelService.ImportResult result;
+            if (projectChoice.Value.createNew)
+            {
+                result = ExcelService.ImportWorkbookToProject(
+                    dlg.FileName,
+                    projectId: null,
+                    newProjectName: projectChoice.Value.name);
+            }
+            else
+            {
+                result = ExcelService.ImportWorkbook(dlg.FileName, projectChoice.Value.projectId);
+            }
+
+            // Holatni yangilash — yangi/yangilangan loyihani topamiz
+            State.Reload();
+            var targetProject = State.Projects.FirstOrDefault(p =>
+                string.Equals(p.Name, result.ProjectName, StringComparison.OrdinalIgnoreCase));
+            if (targetProject != null)
+                State.Reload(targetProject.Id);
+
+            Wells.Load();
+            Journal.Load();
+            Samples.Load();
+            Srp.Load();
+
+            var wellsList = string.Join(", ", result.WellNumbers.Take(15));
+            if (result.WellNumbers.Count > 15)
+                wellsList += $" ... (+{result.WellNumbers.Count - 15})";
+
+            MessageBox.Show(
+                "Import tugadi:\n" +
+                $"  Loyiha: {result.ProjectName}\n" +
+                $"  Quduqlar: {result.WellNumbers.Count} ta " +
+                $"(yangi: {result.WellsCreated}, mavjud: {result.WellsUpdated})\n" +
+                $"  → {wellsList}\n\n" +
+                $"  Dala jurnali: {result.JournalRows} qator\n" +
+                $"  Namuna: {result.SampleRows} qator\n" +
+                $"  SRP: {result.SrpRows} nuqta",
+                "GeoData Pro — Import",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
-        catch (Exception ex) { Warn("Import xatosi: " + ex.Message); }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Import xatosi: " + ex.Message, ex);
+        }
     }
 
+    /// <summary>
+    /// Excel eksport: joriy loyihadagi BARCHA quduqlar (yoki faqat joriy quduq — tanlov).
+    /// </summary>
     [RelayCommand]
     void ExportExcel()
     {
-        var well = State.CurrentWell;
-        if (well == null) { Warn("Avval quduq tanlang."); return; }
+        var project = State.CurrentProject;
+        if (project == null) { Warn("Avval loyiha tanlang."); return; }
+
+        // Tanlov: barcha quduqlar yoki faqat joriy
+        var choice = MessageBox.Show(
+            $"Loyiha: {project.Name}\n\n" +
+            "Barcha quduqlarni eksport qilishni xohlaysizmi?\n\n" +
+            "  Ha  — loyihadagi barcha quduqlar\n" +
+            "  Yo'q — faqat joriy tanlangan quduq",
+            "Eksport rejimi",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+
+        if (choice == MessageBoxResult.Cancel) return;
+
+        bool exportAll = choice == MessageBoxResult.Yes;
+
+        if (!exportAll && State.CurrentWell == null)
+        {
+            Warn("Joriy quduq tanlanmagan. Avval quduq tanlang yoki 'Ha' ni bosing.");
+            return;
+        }
+
+        var defaultName = exportAll
+            ? $"{project.Name}_barcha_quduqlar.xlsx"
+            : $"{project.Name}_{State.CurrentWell!.Number}.xlsx";
+
         var dlg = new SaveFileDialog
         {
             Filter = "Excel (*.xlsx)|*.xlsx",
-            FileName = $"{State.CurrentProject?.Name}_{well.Number}.xlsx",
+            FileName = defaultName,
         };
         if (dlg.ShowDialog() != true) return;
+
         try
         {
-            ExcelService.ExportWorkbook(dlg.FileName, well);
-            MessageBox.Show("Eksport tayyor:\n" + dlg.FileName, "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (exportAll)
+            {
+                ExcelService.ExportWorkbookMulti(dlg.FileName, project.Id);
+            }
+            else
+            {
+                ExcelService.ExportWorkbook(dlg.FileName, State.CurrentWell!);
+            }
+
+            MessageBox.Show(
+                "Eksport tayyor:\n" + dlg.FileName +
+                (exportAll ? "\n\n(Loyihadagi barcha quduqlar)" : $"\n\n(Faqat: {State.CurrentWell!.Number})"),
+                "GeoData Pro",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
-        catch (Exception ex) { Warn("Eksport xatosi: " + ex.Message); }
+        catch (Exception ex)
+        {
+            Warn("Eksport xatosi: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Import uchun loyiha tanlash dialogi.
+    /// Returns (createNew, projectId, name) yoki null (bekor).
+    /// </summary>
+    static (bool createNew, int projectId, string name)? AskProjectForImport()
+    {
+        var state = AppState.Instance;
+        var projects = state.Projects;
+
+        // Agar loyihalar yo'q bo'lsa — majburan yangi yaratish
+        if (projects.Count == 0)
+        {
+            var name = Views.PromptDialog.Ask(
+                "Loyiha yo'q. Yangi loyiha nomini kiriting:",
+                "Yangi loyiha (import)",
+                "Loyiha-import");
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            return (true, 0, name.Trim());
+        }
+
+        // Tanlov: mavjud yoki yangi
+        var mode = MessageBox.Show(
+            "Import qaysi loyihaga yozilsin?\n\n" +
+            "  Ha  — joriy / mavjud loyihaga qo'shish\n" +
+            "  Yo'q — yangi loyiha yaratish\n" +
+            "  Bekor — importni to'xtatish",
+            "Loyiha tanlash",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+
+        if (mode == MessageBoxResult.Cancel) return null;
+
+        if (mode == MessageBoxResult.No)
+        {
+            // Yangi loyiha
+            var name = Views.PromptDialog.Ask(
+                "Yangi loyiha nomi:",
+                "Yangi loyiha (import)",
+                "Loyiha-yangi");
+            if (string.IsNullOrWhiteSpace(name)) return null;
+            return (true, 0, name.Trim());
+        }
+
+        // Mavjud loyiha — joriy tanlangan bo'lsa undan foydalanamiz
+        if (state.CurrentProject != null)
+        {
+            var confirm = MessageBox.Show(
+                $"Ma'lumotlar «{state.CurrentProject.Name}» loyihasiga yoziladi.\n\n" +
+                "Excel dagi quduqlar (mavjud bo'lmasa) shu loyihaga qo'shiladi.\n" +
+                "Davom etasizmi?",
+                "Tasdiqlash",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            if (confirm != MessageBoxResult.Yes) return null;
+            return (false, state.CurrentProject.Id, state.CurrentProject.Name);
+        }
+
+        // Joriy loyiha yo'q — nom so'raymiz
+        var projectNames = string.Join("\n  • ", projects.Select(p => p.Name));
+        var chosen = Views.PromptDialog.Ask(
+            "Loyiha nomini kiriting (mavjud yoki yangi):\n\nMavjud:\n  • " + projectNames,
+            "Loyiha tanlash",
+            projects.First().Name);
+        if (string.IsNullOrWhiteSpace(chosen)) return null;
+
+        var existing = projects.FirstOrDefault(p =>
+            p.Name.Equals(chosen.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+            return (false, existing.Id, existing.Name);
+
+        return (true, 0, chosen.Trim());
     }
 
     static void Warn(string msg) => MessageBox.Show(msg, "GeoData Pro", MessageBoxButton.OK, MessageBoxImage.Warning);
