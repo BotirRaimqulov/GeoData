@@ -47,6 +47,7 @@ public static class Seed
 
         MigrateOrganicRemainsFromMinerals(db);
         ReseedMineralsIfOutdated(db);
+        ReseedTexturesIfOutdated(db);
         BackfillRussianNames(db);
 
         if (!db.DescriptionTemplates.Any())
@@ -143,32 +144,51 @@ public static class Seed
     });
 
     // ---- Tekstura (sedimentar tuzilish turlari) ----
-    static readonly (string uz, string ru, string png)[] TextureRows =
+    static readonly (string uz, string ru, string? png)[] TexturesRows =
     {
-        ("To'g'ri chiziqli",                       "Прямолинейная (ровная)",                        "togri_chiziqli.png"),
-        ("Gorizontal uzluksiz",                    "Горизонтальная непрерывная слоистость",         "gorizontal_uzluksiz.png"),
-        ("Gorizontal uzlukli",                     "Горизонтальная прерывистая слоистость",         "gorizontal_uzlukli.png"),
-        ("To'lqinsimon iz",                        "Волнистая слоистость",                          "tolqinsimon_iz.png"),
-        ("Qiyshiq qirrali",                        "Косая слоистость",                              "qiyshiq_qirrali.png"),
-        ("Linza ko'rinishli",                      "Линзовидная слоистость",                        "linza_korinishli.png"),
-        ("Mulda shaklli",                          "Мульдообразная слоистость",                     "mulda_shaklli.png"),
-        ("Bo'lakli",                               "Комковатая (обломочная)",                       "bolakli.png"),
-        ("Noaniq qatlamlashgan",                   "Неяснослоистая",                                "noaniq_qatlamlashgan.png"),
-        ("Katta hajmli (massiv)",                  "Массивная (беспорядочная)",                     "katta_hajmli.png"),
-        ("Karbonatli",                             "Карбонатная",                                   "karbonatli.png"),
-        ("Chig'anoq",                              "Раковистая",                                    "chiganoq.png"),
-        ("Chuvalchang izi",                        "Следы червей (ходы илоедов)",                   "chuvalchang_izi.png"),
-        ("O'simlik barglarining izlari",           "Отпечатки листьев растений",                    "osimlik_barglarining_izlari.png"),
-        ("O'simlik tomirlarining izlari",          "Следы корней растений",                         "osimlik_tomirlarining_izlari.png"),
-        ("Malyuskalar va chig'anoqlarining izlari","Отпечатки моллюсков и раковин",                 "malyuskalar_va_chiganoqlarining_izlari.png"),
-        ("Baliq suyagining fosfat qoldiqlari",     "Фосфатные остатки рыбьих костей",               "baliq_suyagining_fosfat_qoldiqlari.png"),
-        ("O'xshash minerallar",                    "Стяжения минералов",                            "oxshash_minerallar.png"),
+        // --- Qatlamsiz (Неслоистая) ---
+        ("Qatlamsiz: Massiv",                            "Неслоистая: массивная",                    "qatlamsiz_massiv.png"),
+        ("Qatlamsiz: Kesaksimon",                        "Неслоистая: комковая",                     "qatlamsiz_kesaksimon.png"),
+        ("Qatlamsiz: Noaniq",                            "Неслоистая: неясная",                      "qatlamsiz_noaniq.png"),
+
+        // --- Qatlamli: gorizontal (Слоистая: горизонтальная) ---
+        ("Qatlamli gorizontal: Tutash",                  "Слоистая горизонтальная: сплошная",        "qatlamli_gorizontal_tutash.png"),
+        ("Qatlamli gorizontal: Uzuq-yuluq",              "Слоистая горизонтальная: прерывистая",     "qatlamli_gorizontal_uzuq_yuluq.png"),
+
+        // --- Qatlamli: to'lqinsimon (Слоистая: волнистая) ---
+        ("Qatlamli to'lqinsimon: Linzasimon",            "Слоистая волнистая: линзовидная",          "qatlamli_tolqinsimon_linzasimon.png"),
+        ("Qatlamli to'lqinsimon: Muldasimon",            "Слоистая волнистая: мульдообразная",       "qatlamli_tolqinsimon_muldasimon.png"),
+
+        // --- Qatlamli: qiyshiq (Слоистая: косая) ---
+        ("Qatlamli qiyshiq: To'g'ri chiziqli",           "Слоистая косая: прямолинейная",            "qatlamli_qiyshiq_togri_chiziqli.png"),
+        ("Qatlamli qiyshiq: Birlashuvchi",               "Слоистая косая: сходящаяся",               "qatlamli_qiyshiq_birlashuvchi.png"),
+        ("Qatlamli qiyshiq: Egri chiziqli",              "Слоистая косая: криволинейная",            "qatlamli_qiyshiq_egri_chiziqli.png"),
+
+        // --- Boshqalar ---
+        ("To'lqinsimon jimjima izlari",                  "Знаки волнистой ряби",                     "tolqinsimon_jimjima_izlari.png"),
     };
 
     static IEnumerable<TextureCode> TextureSeed()
     {
         int c = 1;
-        return TextureRows.Select(r => new TextureCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
+        return TexturesRows.Select(r => new TextureCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
+    }
+
+    /// <summary>
+    /// Eski tekstura ro'yxati yangi ro'yxat bilan mos kelmasa — eski yozuvlarni o'chirib,
+    /// yangilarini qo'shamiz.
+    /// </summary>
+    static void ReseedTexturesIfOutdated(AppDbContext db)
+    {
+        var newNames = new HashSet<string>(TexturesRows.Select(r => r.uz), StringComparer.Ordinal);
+        var existing = db.TextureCodes.ToList();
+        bool alreadyNew = existing.Any(x => newNames.Contains(x.Name));
+        if (alreadyNew) return;
+
+        db.TextureCodes.RemoveRange(existing);
+        db.SaveChanges();
+        db.TextureCodes.AddRange(TextureSeed());
+        db.SaveChanges();
     }
 
     // ---- Mineralizatsiya (keng ro'yxat) ----
@@ -361,7 +381,7 @@ public static class Seed
         foreach (var x in db.ColorCodes.Where(x => x.NameRu == null || x.NameRu == ""))
             if (colorRu.TryGetValue(x.Code, out var ru)) { x.NameRu = ru; changed = true; }
 
-        var textureRu = TextureRows.ToDictionary(r => r.uz, r => r.ru);
+        var textureRu = TexturesRows.ToDictionary(r => r.uz, r => r.ru);
         foreach (var x in db.TextureCodes.Where(x => x.NameRu == null || x.NameRu == ""))
             if (textureRu.TryGetValue(x.Name, out var ru)) { x.NameRu = ru; changed = true; }
 
