@@ -178,7 +178,7 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTextColumn Header="Tarkibi" Binding="{Binding Composition, UpdateSourceTrigger=PropertyChanged}" Width="1.3*" MinWidth="130" />
+
 
                             <DataGridTemplateColumn Header="Mineral tarkibi" Width="1.3*" MinWidth="140">
                                 <DataGridTemplateColumn.CellTemplate>
@@ -397,10 +397,6 @@
                             <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"
                                       ItemsSource="{Binding DataContext.Journal.Ref.IronHydroxides, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       SelectedValue="{Binding IronHydroxideCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
-
-                            <TextBlock Text="TARKIBI" Style="{StaticResource Caption}" />
-                            <TextBox Margin="0,4,0,14" Text="{Binding Composition, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Erkin matn: qumloq-gilloq, karbonatli va h.k." />
 
                             <TextBlock Text="MINERAL TARKIBI" Style="{StaticResource Caption}" />
                             <ItemsControl Margin="0,4,0,14" ItemsSource="{Binding ClasticMaterialItems}">
