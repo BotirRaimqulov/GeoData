@@ -174,6 +174,7 @@ public class AppDbContext : DbContext
         Database.SqlQueryRaw<int>("SELECT COUNT(*) AS \"Value\" FROM pragma_foreign_key_check")
             .AsEnumerable().FirstOrDefault() == 0;
 
+#pragma warning disable EF1002
     void ApplyLightMigrations()
     {
         bool ColumnExists(string table, string column)
@@ -268,6 +269,8 @@ public class AppDbContext : DbContext
 
         tx.Commit();
     }
+
+#pragma warning restore EF1002
 
     static readonly IReadOnlyCollection<string> TrackedTables = new[]
     {

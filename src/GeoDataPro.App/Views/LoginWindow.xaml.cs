@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using GeoDataPro.Core;
 using GeoDataPro.Core.Security;
 
@@ -20,18 +21,59 @@ public partial class LoginWindow : Window
         _bootstrap = bootstrap;
         InitializeComponent();
 
-        ModeText.Text = bootstrap ? "Birinchi ishga tushirish" : "Tizimga kirish";
-        SubmitButton.Content = bootstrap ? "Yaratish" : "Kirish";
-        ConfirmPanel.Visibility = bootstrap ? Visibility.Visible : Visibility.Collapsed;
-        MessageText.Text = bootstrap
-            ? "Administrator hisobini yarating."
-            : string.Empty;
+        if (bootstrap)
+        {
+            HeadingText.Text = "Birinchi ishga tushirish";
+            SubheadingText.Text = "Tizimni birinchi marta sozlash uchun ma'lumot kiriting";
+            SubmitButton.Content = "Yaratish";
+            ConfirmField.Visibility = Visibility.Visible;
+            HintText.Visibility = Visibility.Visible;
+            MessageText.Text = "Administrator hisobini yarating.";
+        }
+        else
+        {
+            HeadingText.Text = "Xush kelibsiz";
+            SubheadingText.Text = "Davom etish uchun hisobingizga kiring";
+            SubmitButton.Content = "Kirish";
+            ConfirmField.Visibility = Visibility.Collapsed;
+            HintText.Visibility = Visibility.Collapsed;
+            MessageText.Text = string.Empty;
+        }
 
-        Loaded += (_, _) => UserBox.Focus();
+        ConfirmField.ValueChanged += (_, _) => RefreshMatch();
+        PassField.ValueChanged += (_, _) => RefreshMatch();
+
+        Loaded += (_, _) => UserField.Focus();
         Closed += (_, _) => _cts.Cancel();
+        PreviewKeyDown += OnPreviewKeyDown;
     }
 
     public bool Authenticated { get; private set; }
+
+    void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape) return;
+        if (_busy) return;
+        Close();
+    }
+
+    void Window_Drag(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left) return;
+        if (e.ButtonState != MouseButtonState.Pressed) return;
+        DragMove();
+    }
+
+    void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    void RefreshMatch()
+    {
+        if (!_bootstrap) return;
+
+        var confirm = ConfirmField.Value;
+        ConfirmField.HasError = confirm.Length > 0 &&
+                                !string.Equals(PassField.Value, confirm, StringComparison.Ordinal);
+    }
 
     async void OnSubmit(object sender, RoutedEventArgs e)
     {
@@ -50,7 +92,7 @@ public partial class LoginWindow : Window
         catch (Exception ex)
         {
             var report = _host.Errors.Describe(ex, "Amalni bajarib bo'lmadi.");
-            MessageText.Text = report.UserMessage + " (" + report.Reference + ")";
+            Fail(report.UserMessage + " (" + report.Reference + ")");
         }
         finally
         {
@@ -62,57 +104,86 @@ public partial class LoginWindow : Window
     async Task SignInAsync()
     {
         var result = await _host.Authentication
-            .LoginAsync(UserBox.Text, PassBox.Password, _cts.Token)
+            .LoginAsync(UserField.Value, PassField.Value, _cts.Token)
             .ConfigureAwait(true);
 
-        PassBox.Clear();
+        PassField.Clear();
 
         if (result.Succeeded)
         {
-            Authenticated = true;
-            DialogResult = true;
-            Close();
+            Succeed();
             return;
         }
 
-        MessageText.Text = Describe(result);
-        PassBox.Focus();
+        PassField.HasError = true;
+        UserField.HasError = result.Outcome == AuthOutcome.InvalidCredentials;
+        Fail(Describe(result));
+        PassField.Focus();
     }
 
     async Task ProvisionAsync()
     {
-        if (!string.Equals(PassBox.Password, ConfirmBox.Password, StringComparison.Ordinal))
+        UserField.HasError = false;
+        PassField.HasError = false;
+
+        if (string.IsNullOrWhiteSpace(UserField.Value))
         {
-            MessageText.Text = "Parollar mos kelmadi.";
+            UserField.HasError = true;
+            Fail("Foydalanuvchi nomini kiriting.");
+            UserField.Focus();
             return;
         }
 
+        if (!string.Equals(PassField.Value, ConfirmField.Value, StringComparison.Ordinal))
+        {
+            ConfirmField.HasError = true;
+            Fail("Parollar mos kelmadi.");
+            ConfirmField.Focus();
+            return;
+        }
+
+        var name = UserField.Value.Trim();
+
         var created = await _host.Authentication
-            .ProvisionFirstAdminAsync(UserBox.Text, UserBox.Text, PassBox.Password, _cts.Token)
+            .ProvisionFirstAdminAsync(name, name, PassField.Value, _cts.Token)
             .ConfigureAwait(true);
 
         if (!created.Succeeded)
         {
-            MessageText.Text = Describe(created);
+            PassField.HasError = created.Outcome == AuthOutcome.PasswordRejected;
+            UserField.HasError = created.Outcome is AuthOutcome.Conflict or AuthOutcome.InvalidCredentials;
+            Fail(Describe(created));
             return;
         }
 
         var result = await _host.Authentication
-            .LoginAsync(UserBox.Text, PassBox.Password, _cts.Token)
+            .LoginAsync(name, PassField.Value, _cts.Token)
             .ConfigureAwait(true);
 
-        PassBox.Clear();
-        ConfirmBox.Clear();
+        PassField.Clear();
+        ConfirmField.Clear();
 
         if (result.Succeeded)
         {
-            Authenticated = true;
-            DialogResult = true;
-            Close();
+            Succeed();
             return;
         }
 
-        MessageText.Text = Describe(result);
+        Fail(Describe(result));
+    }
+
+    void Succeed()
+    {
+        Authenticated = true;
+        DialogResult = true;
+        Close();
+    }
+
+    void Fail(string message)
+    {
+        MessageText.Text = message;
+        if (TryFindResource("Danger") is System.Windows.Media.Brush danger)
+            MessageText.Foreground = danger;
     }
 
     static string Describe(AuthResult result) => result.Outcome switch
@@ -136,7 +207,7 @@ public partial class LoginWindow : Window
     {
         PasswordRejection.TooShort => "Parol kamida 12 belgidan iborat bo'lishi kerak.",
         PasswordRejection.TooLong => "Parol juda uzun.",
-        PasswordRejection.NotComplex => "Parolda katta/kichik harf, raqam va belgi bo'lishi kerak.",
+        PasswordRejection.NotComplex => "Parolda katta/kichik harf, raqam va maxsus belgi bo'lishi kerak.",
         PasswordRejection.ContainsIdentity => "Parolda foydalanuvchi nomi bo'lmasin.",
         PasswordRejection.Common => "Bu parol juda oson topiladi.",
         PasswordRejection.Repetitive => "Parol juda takrorlanuvchan.",
