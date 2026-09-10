@@ -186,9 +186,15 @@
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.ClasticMaterials, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                  SelectedValue="{Binding ClasticMaterialCode, UpdateSourceTrigger=PropertyChanged}"
-                                                  SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                        <ItemsControl ItemsSource="{Binding ClasticMaterialItems}" Focusable="False" Margin="2,1">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox Content="{Binding Name}"
+                                                              IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              Margin="0,1" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
@@ -397,9 +403,15 @@
                                      ToolTip="Erkin matn: qumloq-gilloq, karbonatli va h.k." />
 
                             <TextBlock Text="MINERAL TARKIBI" Style="{StaticResource Caption}" />
-                            <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"
-                                      ItemsSource="{Binding DataContext.Journal.Ref.ClasticMaterials, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                      SelectedValue="{Binding ClasticMaterialCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
+                            <ItemsControl Margin="0,4,0,14" ItemsSource="{Binding ClasticMaterialItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Name}"
+                                                  IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  Margin="0,2" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
                             <TextBlock Text="TEKSTURA" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"

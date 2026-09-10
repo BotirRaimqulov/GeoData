@@ -141,6 +141,12 @@ public class AppDbContext : DbContext
         AddColumn("JournalRows", "IronHydroxideCode", "INTEGER NULL");
         AddColumn("JournalRows", "Composition", "TEXT NULL");
         AddColumn("JournalRows", "ClasticMaterialCode", "INTEGER NULL");
+        AddColumn("JournalRows", "ClasticMaterialCodes", "TEXT NULL");
+        // Eski bitta kod → yangi ko'p kodlar formatiga o'tkazish
+        try { Database.ExecuteSqlRaw(
+            "UPDATE JournalRows SET ClasticMaterialCodes = CAST(ClasticMaterialCode AS TEXT) " +
+            "WHERE ClasticMaterialCode IS NOT NULL AND (ClasticMaterialCodes IS NULL OR ClasticMaterialCodes = '')"); }
+        catch { }
         RemoveColumn("JournalRows", "CarbonateCo2");
         AddColumn("DescriptionTemplates", "LithoCode", "INTEGER NULL");
         AddColumn("DescriptionTemplates", "ColorCode", "INTEGER NULL");

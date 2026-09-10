@@ -160,7 +160,9 @@ public class JournalRow
     public int? IronHydroxideCode { get; set; }
     /// <summary>Tarkibi — erkin matn (masalan "qumloq-gilloq", "karbonatli").</summary>
     public string? Composition { get; set; }
-    /// <summary>Mineral tarkibi (obломочный материал): kvars, dala shpatlari va h.k.</summary>
+    /// <summary>Mineral tarkibi — vergul bilan ajratilgan kodlar: "1,3" = Kvars + Muskovit.</summary>
+    public string? ClasticMaterialCodes { get; set; }
+    /// <summary>Eski ustun (migratsiya uchun saqlab qolingan, ishlatilmaydi).</summary>
     public int? ClasticMaterialCode { get; set; }
     /// <summary>Tekstura (tekstura spravochnigi — Gorizontal, Qiyshiq, Massiv va h.k.).</summary>
     public int? TextureCode { get; set; }
