@@ -47,7 +47,7 @@ Scored 0–10 for the state *after* this work. "Before" is the audited baseline.
 | Backup | 0 | 8 | Did not exist; now encrypted, verified, rotated |
 | Network | n/a | 6 | No network layer yet; abstractions prepared |
 | Dependencies | 6 | 7 | No known vulnerable packages; three added, justified below |
-| Testing | 0 | 7 | No tests; now a security suite (results in section F) |
+| Testing | 0 | 7 | No tests; now 95 security cases, all passing (section F) |
 
 Encryption is 7, not 9, because the key is protected by the logged-in Windows
 user, which does not resist an attacker who is already that user or root.
@@ -391,7 +391,12 @@ error reporting · redacting rotated logs · restrictive file ACLs on Windows.
 
 ## F. TEST RESULTS
 
-See `TEST-RESULTS.md`, written from the actual run.
+```
+Passed: 95   Failed: 0   Skipped: 0   Total: 95   Duration: 19 m 35 s
+```
+
+Full detail, including the defect the suite found and the four test
+expectations that were wrong, is in `TEST-RESULTS.md`.
 
 The suite covers the eighteen required scenarios: wrong password, brute force,
 SQL injection, unauthorized access, role escalation, unauthorized delete, path
