@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 
-namespace GeoDataPro.App.Services;
+namespace GeoDataPro.Core.Services;
 
 public sealed class DescriptionClassificationResult
 {

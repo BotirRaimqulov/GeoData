@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 using GeoDataPro.App.ViewModels;
 
 namespace GeoDataPro.App.Views;
@@ -17,7 +17,7 @@ public partial class ReferenceView : UserControl
 
     void ReferenceView_Loaded(object sender, System.Windows.RoutedEventArgs e)
     {
-        foreach (var grid in new[] { LithoGrid, ColorsGrid, TexturesGrid, MineralsGrid, DescGrid })
+        foreach (var grid in new[] { LithoGrid, ColorsGrid, TexturesGrid, MineralsGrid, FloraFaunaGrid, IronHydroxideGrid, ClasticMaterialGrid, DescGrid })
         {
             if (grid == null) continue;
             grid.SelectionChanged -= Grid_SelectionChanged;

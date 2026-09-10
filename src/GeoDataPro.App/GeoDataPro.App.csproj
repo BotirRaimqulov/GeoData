@@ -14,9 +14,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GeoDataPro.Core\GeoDataPro.Core.csproj" />
+    <ProjectReference Include="..\GeoDataPro.Platform.Windows\GeoDataPro.Platform.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>

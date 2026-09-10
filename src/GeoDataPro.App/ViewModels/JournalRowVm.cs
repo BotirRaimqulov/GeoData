@@ -1,6 +1,9 @@
+using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 using GeoDataPro.App.Services;
+using GeoDataPro.Core.Services;
 
 namespace GeoDataPro.App.ViewModels;
 
@@ -9,6 +12,10 @@ public partial class JournalRowVm : ObservableObject
 {
     /// <summary>Donadorlik uchun ruxsat etilgan qiymatlar (Kern tavsifi popup'ida ham ishlatiladi).</summary>
     public static readonly string[] GrainSizes = { "mayda", "o'rta", "yirik" };
+    /// <summary>Qattiqligi uchun ruxsat etilgan qiymatlar (Kern tavsifi popup'ida ham ishlatiladi).</summary>
+    public static readonly string[] Hardnesses = { "yumshoq", "o'rta", "qattiq" };
+    /// <summary>Sementlashuvi uchun ruxsat etilgan qiymatlar (Kern tavsifi popup'ida ham ishlatiladi).</summary>
+    public static readonly string[] Cementations = { "sementlashmagan", "zaif sementlangan", "o'rta sementlangan", "kuchli sementlangan" };
 
     public JournalRow Model { get; }
 
@@ -32,9 +39,26 @@ public partial class JournalRowVm : ObservableObject
         _zoneName = model.ZoneName;
         _lithoCode = model.LithoCode;
         _colorCode = model.ColorCode;
+        _ironHydroxideCode = model.IronHydroxideCode;
+        _composition = model.Composition;
+        // Eski bitta kod → yangi multi-kod formati (migratsiya)
+        _clasticMaterialCodes = model.ClasticMaterialCodes
+            ?? (model.ClasticMaterialCode.HasValue ? model.ClasticMaterialCode.Value.ToString() : null);
+        var _selectedClasticCodes = ParseClasticCodes(_clasticMaterialCodes);
+        ClasticMaterialItems = new ObservableCollection<CheckableClasticItem>(
+            RefCache.Instance.ClasticMaterials.Select(m => new CheckableClasticItem
+            {
+                Code = m.Code, Name = m.Name,
+                IsChecked = _selectedClasticCodes.Contains(m.Code)
+            }));
+        foreach (var item in ClasticMaterialItems)
+            item.PropertyChanged += (_, _) => OnClasticItemChanged();
         _textureCode = model.TextureCode;
-        _mineralCode = model.MineralCode;
         _grainSize = model.GrainSize;
+        _hardness = model.Hardness;
+        _cementation = model.Cementation;
+        _mineralCode = model.MineralCode;
+        _floraFaunaCode = model.FloraFaunaCode;
         _description = model.Description;
         _lastAuto = BuildAutoDescription();
         // Tavsif bo'sh yoki hozirgi avto-natijaga teng bo'lsa — avto rejimda.
@@ -82,10 +106,50 @@ public partial class JournalRowVm : ObservableObject
     [ObservableProperty] private string? _zoneName;
     [ObservableProperty] private int? _lithoCode;
     [ObservableProperty] private int? _colorCode;
+    [ObservableProperty] private int? _ironHydroxideCode;
+    [ObservableProperty] private string? _composition;
+    string? _clasticMaterialCodes;
+    public string? ClasticMaterialCodes
+    {
+        get => _clasticMaterialCodes;
+        set
+        {
+            if (_clasticMaterialCodes == value) return;
+            _clasticMaterialCodes = value;
+            Model.ClasticMaterialCodes = value;
+            Touch();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ClasticMaterialDisplay));
+            AutoFillDescription();
+        }
+    }
+
+    public ObservableCollection<CheckableClasticItem> ClasticMaterialItems { get; private set; } = null!;
+
+    void OnClasticItemChanged()
+    {
+        var codes = string.Join(",", ClasticMaterialItems.Where(x => x.IsChecked).Select(x => x.Code));
+        _clasticMaterialCodes = codes.Length > 0 ? codes : null;
+        Model.ClasticMaterialCodes = _clasticMaterialCodes;
+        Touch();
+        OnPropertyChanged(nameof(ClasticMaterialCodes));
+        OnPropertyChanged(nameof(ClasticMaterialDisplay));
+        AutoFillDescription();
+    }
+
+    static System.Collections.Generic.HashSet<int> ParseClasticCodes(string? s) =>
+        s == null ? new() : s.Split(',', System.StringSplitOptions.RemoveEmptyEntries)
+                              .Select(x => int.TryParse(x.Trim(), out var v) ? v : 0)
+                              .Where(x => x > 0).ToHashSet();
     [ObservableProperty] private int? _textureCode;
-    [ObservableProperty] private int? _mineralCode;
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     [ObservableProperty] private string? _grainSize;
+    /// <summary>Qattiqligi: "yumshoq" / "o'rta" / "qattiq" yoki bo'sh.</summary>
+    [ObservableProperty] private string? _hardness;
+    /// <summary>Sementlashuvi darajasi yoki bo'sh.</summary>
+    [ObservableProperty] private string? _cementation;
+    [ObservableProperty] private int? _mineralCode;
+    [ObservableProperty] private int? _floraFaunaCode;
     [ObservableProperty] private string? _description;
 
     public bool IsDirty { get; private set; }
@@ -155,9 +219,14 @@ public partial class JournalRowVm : ObservableObject
     }
     partial void OnLithoCodeChanged(int? value) { Model.LithoCode = value; Touch(); OnPropertyChanged(nameof(LithoDisplay)); OnPropertyChanged(nameof(LithoPattern)); AutoFillDescription(); }
     partial void OnColorCodeChanged(int? value) { Model.ColorCode = value; Touch(); OnPropertyChanged(nameof(ColorDisplay)); OnPropertyChanged(nameof(ColorHex)); AutoFillDescription(); }
+    partial void OnIronHydroxideCodeChanged(int? value) { Model.IronHydroxideCode = value; Touch(); OnPropertyChanged(nameof(IronHydroxideDisplay)); AutoFillDescription(); }
+    partial void OnCompositionChanged(string? value) { Model.Composition = value; Touch(); AutoFillDescription(); }
     partial void OnTextureCodeChanged(int? value) { Model.TextureCode = value; Touch(); OnPropertyChanged(nameof(TextureDisplay)); AutoFillDescription(); }
-    partial void OnMineralCodeChanged(int? value) { Model.MineralCode = value; Touch(); OnPropertyChanged(nameof(MineralDisplay)); AutoFillDescription(); }
     partial void OnGrainSizeChanged(string? value) { Model.GrainSize = value; Touch(); AutoFillDescription(); }
+    partial void OnHardnessChanged(string? value) { Model.Hardness = value; Touch(); AutoFillDescription(); }
+    partial void OnCementationChanged(string? value) { Model.Cementation = value; Touch(); AutoFillDescription(); }
+    partial void OnMineralCodeChanged(int? value) { Model.MineralCode = value; Touch(); OnPropertyChanged(nameof(MineralDisplay)); AutoFillDescription(); }
+    partial void OnFloraFaunaCodeChanged(int? value) { Model.FloraFaunaCode = value; Touch(); OnPropertyChanged(nameof(FloraFaunaDisplay)); AutoFillDescription(); }
 
     bool _suppressDescNotify;
     partial void OnDescriptionChanged(string? value)
@@ -201,13 +270,18 @@ public partial class JournalRowVm : ObservableObject
         var head = string.Join(" ", new[] { litho, Lower(color) }.Where(s => !string.IsNullOrWhiteSpace(s)));
         if (!string.IsNullOrWhiteSpace(head)) parts.Add(head);
 
-        if (!string.IsNullOrWhiteSpace(GrainSize)) parts.Add($"{Lower(GrainSize)} donador");
-
         var texture = r.Texture4(TextureCode)?.Name;
         if (!string.IsNullOrWhiteSpace(texture)) parts.Add(Lower(texture)!);
 
+        if (!string.IsNullOrWhiteSpace(GrainSize)) parts.Add($"{Lower(GrainSize)} donador");
+        if (!string.IsNullOrWhiteSpace(Hardness)) parts.Add(Lower(Hardness)!);
+        if (!string.IsNullOrWhiteSpace(Cementation)) parts.Add(Lower(Cementation)!);
+
         var mineral = r.Mineral4(MineralCode)?.Name;
         if (!string.IsNullOrWhiteSpace(mineral)) parts.Add(Lower(mineral)!);
+
+        var floraFauna = r.FloraFauna4(FloraFaunaCode)?.Name;
+        if (!string.IsNullOrWhiteSpace(floraFauna)) parts.Add(Lower(floraFauna)!);
 
         return string.Join(", ", parts);
 
@@ -319,4 +393,16 @@ public partial class JournalRowVm : ObservableObject
 
     public string TextureDisplay => RefCache.Instance.Texture4(TextureCode)?.Name ?? "";
     public string MineralDisplay => RefCache.Instance.Mineral4(MineralCode)?.Name ?? "";
+    public string FloraFaunaDisplay => RefCache.Instance.FloraFauna4(FloraFaunaCode)?.Name ?? "";
+    public string IronHydroxideDisplay => RefCache.Instance.IronHydroxide4(IronHydroxideCode)?.Name ?? "";
+    public string ClasticMaterialDisplay =>
+        string.Join(", ", ClasticMaterialItems.Where(x => x.IsChecked).Select(x => x.Name));
+}
+
+/// <summary>Mineral tarkibi uchun checkbox elementi.</summary>
+public partial class CheckableClasticItem : ObservableObject
+{
+    public int Code { get; init; }
+    public string Name { get; init; } = "";
+    [ObservableProperty] bool _isChecked;
 }

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:GeoDataPro.App.ViewModels"
              xmlns:v="clr-namespace:GeoDataPro.App.Views"
+             xmlns:inf="clr-namespace:GeoDataPro.App.Infrastructure"
              d:DataContext="{d:DesignInstance vm:MainViewModel}"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
@@ -38,7 +39,8 @@
                             <ComboBox Width="170" ItemsSource="{Binding State.CurrentWells}" DisplayMemberPath="Number"
                                       SelectedItem="{Binding State.CurrentWell}" />
                             <Button Content="+" Style="{StaticResource IconButton}" Margin="8,2,0,2"
-                                    ToolTip="Yangi quduq qo'shish" Command="{Binding AddWellCommand}" />
+                                    ToolTip="Yangi quduq qo'shish" Command="{Binding AddWellCommand}"
+                                    IsEnabled="{Binding Journal.CanEdit}" />
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -48,14 +50,14 @@
                         <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
                     </Border>
                     <Button Content="⭱  Import Excel" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
-                            Command="{Binding ImportExcelCommand}" />
+                            Command="{Binding ImportExcelCommand}" IsEnabled="{Binding CanImport}" />
                     <Button Content="⭳  Eksport" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
-                            Command="{Binding ExportExcelCommand}" />
+                            Command="{Binding ExportExcelCommand}" IsEnabled="{Binding CanExport}" />
                     <Button Content="Saqlash (Ctrl+S)" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
                             Command="{Binding Journal.SaveCommand}"
                             Visibility="{Binding Journal.HasUnsaved, Converter={StaticResource BoolToVis}}" />
                     <Button Content="+  Qator qo'shish" Style="{StaticResource PrimaryButton}"
-                            Command="{Binding Journal.AddRowCommand}" />
+                            Command="{Binding Journal.AddRowCommand}" IsEnabled="{Binding Journal.CanEdit}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -63,12 +65,14 @@
         <!-- ===== Main split: grid + details ===== -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MinWidth="420" />
-                <ColumnDefinition Width="300" MinWidth="272" />
+                <ColumnDefinition Width="*" MinWidth="360" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition x:Name="DetailsColumn" Width="320" MinWidth="240" MaxWidth="640" />
             </Grid.ColumnDefinitions>
 
-            <!-- Left: grid + summary -->
-            <Grid Grid.Column="0" Margin="0,0,16,0">
+            <GridSplitter Grid.Column="1" Style="{StaticResource PanelSplitter}" Margin="3,0" />
+
+            <Grid Grid.Column="0" Margin="0,0,3,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -79,16 +83,31 @@
                               SelectedItem="{Binding Journal.Selected}"
                               BorderThickness="0" CanUserSortColumns="False"
                               SelectionMode="Extended" SelectionUnit="FullRow"
-                              HorizontalScrollBarVisibility="Auto" MaxWidth="10000"
+                              inf:GridEditing.Enhanced="True"
+                              ColumnHeaderStyle="{StaticResource WrapHeader}"
+                              ColumnHeaderHeight="48"
+                              CanUserResizeColumns="True" ColumnWidth="SizeToHeader"
+                              FrozenColumnCount="3"
+                              EnableColumnVirtualization="False"
+                              HorizontalScrollBarVisibility="Visible"
+                              VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                              PreviewMouseWheel="Grid_PreviewMouseWheel"
                               PreparingCellForEdit="Grid_PreparingCellForEdit">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="0.7*" MinWidth="70" />
-                            <DataGridTextColumn Header="Yuqori (m)" Binding="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
-                            <DataGridTextColumn Header="Pastki (m)" Binding="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
-                            <DataGridTextColumn Header="Kern, m" Binding="{Binding CoreRecoveryM, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="100" />
-                            <DataGridTextColumn Header="Zona nomi" Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" Width="1.2*" MinWidth="140" />
+                            <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="58" MinWidth="52" />
+                            <DataGridTextColumn Header="Yuqori (m)" EditingElementStyle="{StaticResource CellEditor}" Width="104" MinWidth="88"
+                                                Binding="{Binding Top, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
+                            <DataGridTextColumn Header="Pastki (m)" EditingElementStyle="{StaticResource CellEditor}" Width="104" MinWidth="88"
+                                                Binding="{Binding Bottom, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
+                            <DataGridTextColumn Header="Kern chiqishi (m)" EditingElementStyle="{StaticResource CellEditor}" Width="112" MinWidth="96"
+                                                Binding="{Binding CoreRecoveryM, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
+                            <DataGridTextColumn Header="Kern chiqishi, %" Binding="{Binding RecoveryPercent, StringFormat={}{0:N1}%, Mode=OneWay}" IsReadOnly="True" Width="116" MinWidth="104" />
+                            <DataGridTextColumn Header="Zona nomi" EditingElementStyle="{StaticResource CellEditor}" Width="130" MinWidth="110"
+                                                Binding="{Binding ZoneName, UpdateSourceTrigger=PropertyChanged}" />
 
-                            <DataGridTemplateColumn Header="Litologiya" Width="1.3*" MinWidth="130">
+                            <DataGridTemplateColumn Header="Litologiya" Width="210" MinWidth="160">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -129,7 +148,7 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Kern rangi" Width="1.1*" MinWidth="120">
+                            <DataGridTemplateColumn Header="Rangi" Width="170" MinWidth="130">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -164,7 +183,48 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Tekstura" Width="1.3*" MinWidth="130">
+                            <DataGridTemplateColumn Header="Gidrookisleniya" Width="180" MinWidth="140">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding IronHydroxideDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.IronHydroxides, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  SelectedValue="{Binding IronHydroxideCode, UpdateSourceTrigger=PropertyChanged}"
+                                                  SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+
+
+                            <DataGridTemplateColumn Header="Mineral tarkibi" Width="190" MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding ClasticMaterialDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox IsEditable="True" IsReadOnly="True"
+                                                  Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
+                                                  ItemsSource="{Binding ClasticMaterialItems}">
+                                            <ComboBox.ItemContainerStyle>
+                                                <Style TargetType="ComboBoxItem">
+                                                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>
+                                                </Style>
+                                            </ComboBox.ItemContainerStyle>
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox Content="{Binding Name}"
+                                                              IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              IsHitTestVisible="False" Focusable="False" Margin="0,1"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Tekstura" Width="180" MinWidth="140">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate><TextBlock Text="{Binding TextureDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -177,20 +237,7 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Mineralizatsiya" Width="1.3*" MinWidth="150">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate><TextBlock Text="{Binding MineralDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                                <DataGridTemplateColumn.CellEditingTemplate>
-                                    <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.Minerals, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                  SelectedValue="{Binding MineralCode, UpdateSourceTrigger=PropertyChanged}"
-                                                  SelectedValuePath="Code" DisplayMemberPath="Name" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellEditingTemplate>
-                            </DataGridTemplateColumn>
-
-                            <DataGridTemplateColumn Header="Donadorligi" Width="1.1*" MinWidth="130">
+                            <DataGridTemplateColumn Header="Donadorligi" Width="150" MinWidth="120">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate><TextBlock Text="{Binding GrainSize}" TextTrimming="CharacterEllipsis" /></DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -207,7 +254,69 @@
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTextColumn Header="Kern tavsifi" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2.5*" MinWidth="220" />
+                            <DataGridTemplateColumn Header="Qattiqligi" Width="150" MinWidth="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Hardness}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedValuePath="Tag"
+                                                  SelectedValue="{Binding Hardness, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="—" Tag="{x:Null}" />
+                                            <ComboBoxItem Content="Yumshoq" Tag="yumshoq" />
+                                            <ComboBoxItem Content="O'rta" Tag="o'rta" />
+                                            <ComboBoxItem Content="Qattiq" Tag="qattiq" />
+                                        </ComboBox>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Sementlashuvi" Width="170" MinWidth="140">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Cementation}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox SelectedValuePath="Tag"
+                                                  SelectedValue="{Binding Cementation, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="—" Tag="{x:Null}" />
+                                            <ComboBoxItem Content="Sementlashmagan" Tag="sementlashmagan" />
+                                            <ComboBoxItem Content="Zaif sementlangan" Tag="zaif sementlangan" />
+                                            <ComboBoxItem Content="O'rta sementlangan" Tag="o'rta sementlangan" />
+                                            <ComboBoxItem Content="Kuchli sementlangan" Tag="kuchli sementlangan" />
+                                        </ComboBox>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Mineralizatsiya" Width="190" MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding MineralDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.Minerals, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  SelectedValue="{Binding MineralCode, UpdateSourceTrigger=PropertyChanged}"
+                                                  SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Flora-Fauna" Width="190" MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding FloraFaunaDisplay}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox ItemsSource="{Binding DataContext.Journal.Ref.FloraFauna, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  SelectedValue="{Binding FloraFaunaCode, UpdateSourceTrigger=PropertyChanged}"
+                                                  SelectedValuePath="Code" DisplayMemberPath="Name" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Kern tavsifi" EditingElementStyle="{StaticResource CellEditor}" Width="340" MinWidth="220"
+                                                Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
@@ -226,7 +335,7 @@
             </Grid>
 
             <!-- Right: details panel -->
-            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16">
                         <TextBlock Text="Qator detallari" Style="{StaticResource H2}" Margin="0,0,0,14" />
@@ -234,9 +343,9 @@
                                     Visibility="{Binding Converter={StaticResource NullToVis}}">
                             <TextBlock Text="YUQORI / PASTKI" Style="{StaticResource Caption}" />
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,14">
-                                <TextBox Width="80" Text="{Binding Top, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="80" Text="{Binding Top, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="—" Margin="8,0" VerticalAlignment="Center" Foreground="{StaticResource TextMuted}" />
-                                <TextBox Width="80" Text="{Binding Bottom, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="80" Text="{Binding Bottom, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="m" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextMuted}" />
                             </StackPanel>
 
@@ -245,7 +354,7 @@
 
                             <TextBlock Text="KERN CHIQISHI" Style="{StaticResource Caption}" />
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
-                                <TextBox Width="80" Text="{Binding CoreRecoveryM, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="80" Text="{Binding CoreRecoveryM, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="{Binding RecoveryText}" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}" />
                             </StackPanel>
                             <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding RecoveryPercent, Mode=OneWay}"
@@ -292,7 +401,7 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
 
-                            <TextBlock Text="KERN RANGI" Style="{StaticResource Caption}" />
+                            <TextBlock Text="RANGI" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14"
                                       ItemsSource="{Binding DataContext.Journal.Ref.Colors, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       SelectedValue="{Binding ColorCode, UpdateSourceTrigger=PropertyChanged}"
@@ -310,15 +419,33 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
 
+                            <TextBlock Text="GIDROOKISLENIYA" Style="{StaticResource Caption}" />
+                            <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"
+                                      ItemsSource="{Binding DataContext.Journal.Ref.IronHydroxides, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      SelectedValue="{Binding IronHydroxideCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
+
+                            <TextBlock Text="MINERAL TARKIBI" Style="{StaticResource Caption}" />
+                            <ComboBox Margin="0,4,0,14" IsEditable="True" IsReadOnly="True"
+                                      Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
+                                      ItemsSource="{Binding ClasticMaterialItems}">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Content="{Binding Name}"
+                                                  IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  IsHitTestVisible="False" Focusable="False" Margin="0,1"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
                             <TextBlock Text="TEKSTURA" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"
                                       ItemsSource="{Binding DataContext.Journal.Ref.Textures, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                       SelectedValue="{Binding TextureCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
-
-                            <TextBlock Text="MINERALIZATSIYA" Style="{StaticResource Caption}" />
-                            <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"
-                                      ItemsSource="{Binding DataContext.Journal.Ref.Minerals, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                      SelectedValue="{Binding MineralCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
 
                             <TextBlock Text="DONADORLIGI" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14" SelectedValuePath="Tag"
@@ -328,6 +455,35 @@
                                 <ComboBoxItem Content="O'rta" Tag="o'rta" />
                                 <ComboBoxItem Content="Yirik" Tag="yirik" />
                             </ComboBox>
+
+                            <TextBlock Text="QATTIQLIGI" Style="{StaticResource Caption}" />
+                            <ComboBox Margin="0,4,0,14" SelectedValuePath="Tag"
+                                      SelectedValue="{Binding Hardness, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBoxItem Content="—" Tag="{x:Null}" />
+                                <ComboBoxItem Content="Yumshoq" Tag="yumshoq" />
+                                <ComboBoxItem Content="O'rta" Tag="o'rta" />
+                                <ComboBoxItem Content="Qattiq" Tag="qattiq" />
+                            </ComboBox>
+
+                            <TextBlock Text="SEMENTLASHUVI" Style="{StaticResource Caption}" />
+                            <ComboBox Margin="0,4,0,14" SelectedValuePath="Tag"
+                                      SelectedValue="{Binding Cementation, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBoxItem Content="—" Tag="{x:Null}" />
+                                <ComboBoxItem Content="Sementlashmagan" Tag="sementlashmagan" />
+                                <ComboBoxItem Content="Zaif sementlangan" Tag="zaif sementlangan" />
+                                <ComboBoxItem Content="O'rta sementlangan" Tag="o'rta sementlangan" />
+                                <ComboBoxItem Content="Kuchli sementlangan" Tag="kuchli sementlangan" />
+                            </ComboBox>
+
+                            <TextBlock Text="MINERALIZATSIYA" Style="{StaticResource Caption}" />
+                            <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"
+                                      ItemsSource="{Binding DataContext.Journal.Ref.Minerals, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      SelectedValue="{Binding MineralCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
+
+                            <TextBlock Text="FLORA-FAUNA" Style="{StaticResource Caption}" />
+                            <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"
+                                      ItemsSource="{Binding DataContext.Journal.Ref.FloraFauna, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      SelectedValue="{Binding FloraFaunaCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
 
                             <Grid Margin="0,0,0,4">
                                 <TextBlock Text="KERN TAVSIFI" Style="{StaticResource Caption}" VerticalAlignment="Center" />
@@ -366,13 +522,13 @@
 
                         <TextBlock Text="Tezkor amallar" Style="{StaticResource H2}" FontSize="13" Margin="0,0,0,10" />
                         <Button Content="⧉  Qatorni nusxalash  (Ctrl+D)" Style="{StaticResource GhostButton}" HorizontalContentAlignment="Left"
-                                Margin="0,0,0,6" Command="{Binding Journal.DuplicateRowCommand}" />
+                                Margin="0,0,0,6" Command="{Binding Journal.DuplicateRowCommand}" IsEnabled="{Binding Journal.CanEdit}" />
                         <Button Content="↑  Yuqoriga surish" Style="{StaticResource GhostButton}" HorizontalContentAlignment="Left"
                                 Margin="0,0,0,6" Command="{Binding Journal.MoveUpCommand}" />
                         <Button Content="↓  Pastga surish" Style="{StaticResource GhostButton}" HorizontalContentAlignment="Left"
                                 Margin="0,0,0,6" Command="{Binding Journal.MoveDownCommand}" />
                         <Button Content="🗑  Qatorni o'chirish  (Del)" Style="{StaticResource GhostButton}" HorizontalContentAlignment="Left"
-                                Command="{Binding Journal.DeleteRowCommand}" />
+                                Command="{Binding Journal.DeleteRowCommand}" IsEnabled="{Binding Journal.CanEdit}" />
                     </StackPanel>
                 </ScrollViewer>
             </Border>

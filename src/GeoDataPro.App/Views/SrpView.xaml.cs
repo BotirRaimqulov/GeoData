@@ -1,7 +1,9 @@
+using System;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 using GeoDataPro.App.ViewModels;
 
 namespace GeoDataPro.App.Views;
@@ -38,4 +40,16 @@ public partial class SrpView : UserControl
         }
         finally { _syncingSelection = false; }
     }
+
+    void ScaleBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (Chart == null) return;
+        if (ScaleBox?.SelectedItem is not ComboBoxItem item) return;
+        if (item.Tag is not string tag) return;
+        if (!double.TryParse(tag, NumberStyles.Float, CultureInfo.InvariantCulture, out var window)) return;
+
+        Chart.WindowMetres = window;
+    }
+
+    void ResetZoom_Click(object sender, RoutedEventArgs e) => Chart?.ResetView();
 }

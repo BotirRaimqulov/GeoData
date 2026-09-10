@@ -1,112 +1,129 @@
 <UserControl x:Class="GeoDataPro.App.Views.SrpView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:v="clr-namespace:GeoDataPro.App.Views">
+             xmlns:v="clr-namespace:GeoDataPro.App.Views"
+             xmlns:inf="clr-namespace:GeoDataPro.App.Infrastructure">
     <Grid Margin="24,20" DataContext="{Binding Srp}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="360" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <Grid Grid.Column="0" Margin="0,0,16,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <Border Grid.Row="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,16">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal">
-                        <StackPanel Margin="0,0,16,0">
-                            <TextBlock Text="Loyiha" Style="{StaticResource FieldLabel}" />
-                            <ComboBox Width="220" DisplayMemberPath="Name"
-                                      ItemsSource="{Binding DataContext.State.Projects, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                      SelectedItem="{Binding DataContext.State.CurrentProject, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        </StackPanel>
-                        <StackPanel>
-                            <TextBlock Text="Quduq" Style="{StaticResource FieldLabel}" />
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox Width="170" DisplayMemberPath="Number"
-                                          ItemsSource="{Binding DataContext.State.CurrentWells, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                          SelectedItem="{Binding DataContext.State.CurrentWell, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                <Button Content="+" Style="{StaticResource IconButton}" Margin="8,2,0,2"
-                                        ToolTip="Yangi quduq qo'shish"
-                                        Command="{Binding DataContext.AddWellCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                            </StackPanel>
+        <Border Grid.Row="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="Loyiha" Style="{StaticResource FieldLabel}" />
+                        <ComboBox Width="220" DisplayMemberPath="Name"
+                                  ItemsSource="{Binding DataContext.State.Projects, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  SelectedItem="{Binding DataContext.State.CurrentProject, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Quduq" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox Width="170" DisplayMemberPath="Number"
+                                      ItemsSource="{Binding DataContext.State.CurrentWells, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      SelectedItem="{Binding DataContext.State.CurrentWell, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            <Button Content="+" Style="{StaticResource IconButton}" Margin="8,2,0,2"
+                                    ToolTip="Yangi quduq qo'shish"
+                                    Command="{Binding DataContext.AddWellCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                         </StackPanel>
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
-                        <Border Background="{StaticResource BadgeInfoBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
-                                Visibility="{Binding SelectedItems.Count, Converter={StaticResource IntToVis}}">
-                            <TextBlock Text="{Binding SelectedItems.Count, StringFormat='Tanlangan: {0}'}" Foreground="{StaticResource BadgeInfoText}" Style="{StaticResource BadgeText}" />
-                        </Border>
-                        <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
-                                Visibility="{Binding HasUnsaved, Converter={StaticResource BoolToVis}}">
-                            <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
-                        </Border>
-                        <Button Content="+  Nuqta qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" />
-                        <Button Content="O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" />
-                        <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Border Background="{StaticResource BadgeInfoBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
+                            Visibility="{Binding SelectedItems.Count, Converter={StaticResource IntToVis}}">
+                        <TextBlock Text="{Binding SelectedItems.Count, StringFormat='Tanlangan: {0}'}" Foreground="{StaticResource BadgeInfoText}" Style="{StaticResource BadgeText}" />
+                    </Border>
+                    <Border Background="{StaticResource BadgeWarnBg}" Style="{StaticResource Badge}" Margin="0,0,8,0"
+                            Visibility="{Binding HasUnsaved, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Saqlanmagan o'zgarishlar" Foreground="{StaticResource BadgeWarnText}" Style="{StaticResource BadgeText}" />
+                    </Border>
+                    <Button Content="+  Nuqta qo'shish" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}" Margin="0,0,8,0" IsEnabled="{Binding CanEdit}" />
+                    <Button Content="O'chirish" Style="{StaticResource GhostButton}" Command="{Binding DeleteCommand}" Margin="0,0,8,0" IsEnabled="{Binding CanEdit}" />
+                    <Button Content="Saqlash" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" IsEnabled="{Binding CanEdit}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="ListColumn" Width="330" MinWidth="220" MaxWidth="720" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="360" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
                 <DataGrid x:Name="Grid" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
                           SelectionMode="Extended" SelectionUnit="FullRow" BorderThickness="0"
+                          CanUserSortColumns="False"
+                          inf:GridEditing.Enhanced="True"
+                          ColumnHeaderStyle="{StaticResource WrapHeader}"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
                           SelectionChanged="Grid_SelectionChanged">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="MD (m)" Binding="{Binding Md, StringFormat=N1, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="120" />
-                        <DataGridTextColumn Header="Core_GK" Binding="{Binding CoreGk, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" Width="1*" MinWidth="140" />
+                        <DataGridTextColumn Header="MD (m)" Width="1.1*" MinWidth="110"
+                                            EditingElementStyle="{StaticResource CellEditor}"
+                                            Binding="{Binding Md, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
+                        <DataGridTextColumn Header="CoreGK" Width="1*" MinWidth="100"
+                                            EditingElementStyle="{StaticResource CellEditor}"
+                                            Binding="{Binding CoreGk, Converter={StaticResource Num2}, UpdateSourceTrigger=PropertyChanged}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
-        </Grid>
 
-        <Border Grid.Column="1" Style="{StaticResource Card}">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Kern GK karotaj chizig'i" Style="{StaticResource H2}" Margin="0,0,0,12" />
-                <ItemsControl ItemsSource="{Binding Chart}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas Background="{StaticResource WindowBg}" ClipToBounds="True" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemContainerStyle>
-                        <Style TargetType="ContentPresenter">
-                            <Setter Property="Canvas.Left">
-                                <Setter.Value>
-                                    <MultiBinding>
-                                        <MultiBinding.Converter>
-                                            <v:CanvasScaleConverter Axis="X" Padding="20" />
-                                        </MultiBinding.Converter>
-                                        <Binding Path="NormX" />
-                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                                    </MultiBinding>
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="Canvas.Top">
-                                <Setter.Value>
-                                    <MultiBinding>
-                                        <MultiBinding.Converter>
-                                            <v:CanvasScaleConverter Axis="Y" Padding="12" />
-                                        </MultiBinding.Converter>
-                                        <Binding Path="NormY" />
-                                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                                    </MultiBinding>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ItemsControl.ItemContainerStyle>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Ellipse Width="6" Height="6" Fill="{StaticResource Accent}" ToolTip="{Binding Value}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </DockPanel>
-        </Border>
+            <GridSplitter Grid.Column="1" Style="{StaticResource PanelSplitter}" Margin="3,0" />
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="16,14">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Kern GK karotaj chizig'i" Style="{StaticResource H2}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Masshtab:" Foreground="{StaticResource TextSecondary}" FontSize="12"
+                                       VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ComboBox x:Name="ScaleBox" Width="110" SelectedIndex="1"
+                                      SelectionChanged="ScaleBox_SelectionChanged">
+                                <ComboBoxItem Content="[1:50]" Tag="0.75" />
+                                <ComboBoxItem Content="[1:100]" Tag="1.5" />
+                                <ComboBoxItem Content="[1:200]" Tag="3" />
+                                <ComboBoxItem Content="[1:500]" Tag="7.5" />
+                                <ComboBoxItem Content="[1:1000]" Tag="15" />
+                                <ComboBoxItem Content="[1:2000]" Tag="30" />
+                            </ComboBox>
+                            <Button Content="⤢  Zoom" Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                                    ToolTip="Butun oraliqni ko'rsatish" Click="ResetZoom_Click" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Count, StringFormat='Nuqtalar: {0}'}" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" Margin="0,0,16,0" />
+                            <TextBlock Text="{Binding MinGk, StringFormat='Min: {0:N1}'}" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" Margin="0,0,16,0" />
+                            <TextBlock Text="{Binding MaxGk, StringFormat='Max: {0:N1}'}" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" Margin="0,0,16,0" />
+                            <TextBlock Text="{Binding AvgGk, StringFormat='O''rtacha: {0:N1}'}" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" Margin="0,0,16,0" />
+                            <TextBlock Text="G'ildirak — masshtab · sichqoncha bilan tortish — siljitish" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{StaticResource WindowBg}" CornerRadius="8" Padding="4">
+                        <v:LogChart x:Name="Chart" PointsSource="{Binding Rows}" WindowMetres="1.5" />
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

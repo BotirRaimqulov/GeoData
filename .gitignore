@@ -2,3 +2,12 @@ bin/
 obj/
 *.user
 .vs/
+*.pdb
+*.db
+*.db-wal
+*.db-shm
+*.gdb
+*.log
+.env
+appsettings.*.local.json
+secrets*.json

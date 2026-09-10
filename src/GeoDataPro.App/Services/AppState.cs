@@ -2,14 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core;
+using GeoDataPro.Core.Data;
+using GeoDataPro.Core.Security;
+using GeoDataPro.Core.Services;
 
 namespace GeoDataPro.App.Services;
 
-/// <summary>Global tanlov holati: joriy loyiha va quduq.</summary>
 public partial class AppState : ObservableObject
 {
     public static AppState Instance { get; } = new();
+
+    SecurityHost? _host;
 
     [ObservableProperty] private List<Project> _projects = new();
     [ObservableProperty] private Project? _currentProject;
@@ -17,6 +21,20 @@ public partial class AppState : ObservableObject
 
     public event Action? WellChanged;
     public event Action? DataChanged;
+
+    public SecurityHost Host => _host ?? SecurityHost.Require();
+
+    public IGeoDataService Data => Host.Data;
+
+    public Principal? Principal => Host.Sessions.Current;
+
+    public bool Can(string permission) => _host?.Authorization.Has(permission) ?? false;
+
+    public void Attach(SecurityHost host)
+    {
+        _host = host ?? throw new ArgumentNullException(nameof(host));
+        RefCache.Instance.Attach(host.Data);
+    }
 
     public List<Well> CurrentWells =>
         CurrentProject?.Wells.OrderBy(w => w.Number).ToList() ?? new();
@@ -28,21 +46,26 @@ public partial class AppState : ObservableObject
     }
 
     partial void OnCurrentWellChanged(Well? value) =>
-        RaiseSafely(WellChanged, "Quduq ma'lumotlarini yuklashda xato yuz berdi. Ayrim bo'limlar yangilanmagan bo'lishi mumkin.");
+        RaiseSafely(WellChanged, "Quduq ma'lumotlarini yuklashda xato yuz berdi.");
 
     public void RaiseDataChanged() =>
         RaiseSafely(DataChanged, "Ma'lumotlarni yangilashda xato yuz berdi.");
 
     public void Reload(int? keepProjectId = null, int? keepWellId = null)
     {
-        using var db = new AppDbContext();
-        Projects = db.Projects
-            .OrderBy(p => p.Name)
-            .Select(p => p)
-            .ToList();
-        // load wells for each project
-        foreach (var p in Projects)
-            p.Wells = db.Wells.Where(w => w.ProjectId == p.Id).OrderBy(w => w.Number).ToList();
+        if (_host == null) return;
+
+        try
+        {
+            var projects = Data.GetProjects().ToList();
+            foreach (var project in projects)
+                project.Wells = Data.GetWells(project.Id).ToList();
+            Projects = projects;
+        }
+        catch (SecurityDeniedException)
+        {
+            Projects = new List<Project>();
+        }
 
         var pid = keepProjectId ?? CurrentProject?.Id;
         CurrentProject = Projects.FirstOrDefault(p => p.Id == pid) ?? Projects.FirstOrDefault();
@@ -65,8 +88,7 @@ public partial class AppState : ObservableObject
             catch (Exception ex)
             {
                 firstError ??= ex;
-                AppNotifier.LogException(ex,
-                    $"{handler.Method.DeclaringType?.FullName ?? "Unknown"}.{handler.Method.Name}");
+                AppNotifier.LogException(ex, "state-handler");
             }
         }
 

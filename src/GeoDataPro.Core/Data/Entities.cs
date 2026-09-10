@@ -1,9 +1,19 @@
+using System;
 using System.Collections.Generic;
 
-namespace GeoDataPro.App.Data;
+namespace GeoDataPro.Core.Data;
+
+public interface ITrackedEntity
+{
+    bool IsDeleted { get; set; }
+    string? DeletedUtc { get; set; }
+    int? DeletedByUserId { get; set; }
+    string RowVersion { get; set; }
+    string? Stamp { get; set; }
+}
 
 /// <summary>Loyiha (masalan "Loyiha-01").</summary>
-public class Project
+public class Project : ITrackedEntity
 {
     public int Id { get; set; }
     public string Name { get; set; } = "";
@@ -13,10 +23,16 @@ public class Project
     public string? Notes { get; set; }
 
     public List<Well> Wells { get; set; } = new();
+
+    public bool IsDeleted { get; set; }
+    public string? DeletedUtc { get; set; }
+    public int? DeletedByUserId { get; set; }
+    public string RowVersion { get; set; } = Guid.NewGuid().ToString("N");
+    public string? Stamp { get; set; }
 }
 
 /// <summary>Skvazhina / quduq.</summary>
-public class Well
+public class Well : ITrackedEntity
 {
     public int Id { get; set; }
     public int ProjectId { get; set; }
@@ -35,6 +51,12 @@ public class Well
     public List<JournalRow> JournalRows { get; set; } = new();
     public List<SampleRow> SampleRows { get; set; } = new();
     public List<SrpRow> SrpRows { get; set; } = new();
+
+    public bool IsDeleted { get; set; }
+    public string? DeletedUtc { get; set; }
+    public int? DeletedByUserId { get; set; }
+    public string RowVersion { get; set; } = Guid.NewGuid().ToString("N");
+    public string? Stamp { get; set; }
 }
 
 /// <summary>Litologik kod spravochnigi.</summary>
@@ -88,6 +110,38 @@ public class MineralCode
     public string? PatternKey { get; set; }
 }
 
+/// <summary>Flora-fauna qoldiqlari spravochnigi (o'simlik/hayvon izlari, chig'anoqlar va h.k.).</summary>
+public class FloraFaunaCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    /// <summary>O'zbekcha nomi.</summary>
+    public string Name { get; set; } = "";
+    /// <summary>Ruscha nomi (остатки флоры и фауны).</summary>
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
+/// <summary>Temir gidrooksidlari va oksidlanish belgilari spravochnigi.</summary>
+public class IronHydroxideCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    public string Name { get; set; } = "";
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
+/// <summary>Mineral tarkibi (obломочный материал): kvars, dala shpatlari va h.k.</summary>
+public class ClasticMaterialCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    public string Name { get; set; } = "";
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
 /// <summary>
 /// Tasnif / description shabloni. Litho/rang/tekstura/mineral/donadorlik maydonlari
 /// ixtiyoriy — to'ldirilgan maydon shu qiymatga mos bo'lishi shart, bo'sh maydon esa
@@ -107,7 +161,7 @@ public class DescriptionTemplate
 }
 
 /// <summary>Dala jurnali qatori.</summary>
-public class JournalRow
+public class JournalRow : ITrackedEntity
 {
     public int Id { get; set; }
     public int WellId { get; set; }
@@ -119,20 +173,43 @@ public class JournalRow
     /// <summary>Kern chiqishi (m).</summary>
     public double CoreRecoveryM { get; set; }
     public string? ZoneName { get; set; }
+
+    // Ustunlar tartibi: Litologiya, Rangi, Gidrookisleniya, Tarkibi, Mineral tarkibi,
+    // Tekstura, Donadorligi, Qattiqligi, Sementlashuvi, Mineralizatsiya, Flora-Fauna.
     public int? LithoCode { get; set; }
     public int? ColorCode { get; set; }
+    /// <summary>Gidrookisleniya — temir gidrooksidlari spravochnigi.</summary>
+    public int? IronHydroxideCode { get; set; }
+    /// <summary>Tarkibi — erkin matn (masalan "qumloq-gilloq", "karbonatli").</summary>
+    public string? Composition { get; set; }
+    /// <summary>Mineral tarkibi — vergul bilan ajratilgan kodlar: "1,3" = Kvars + Muskovit.</summary>
+    public string? ClasticMaterialCodes { get; set; }
+    /// <summary>Eski ustun (migratsiya uchun saqlab qolingan, ishlatilmaydi).</summary>
+    public int? ClasticMaterialCode { get; set; }
+    /// <summary>Tekstura (tekstura spravochnigi — Gorizontal, Qiyshiq, Massiv va h.k.).</summary>
     public int? TextureCode { get; set; }
-    public int? MineralCode { get; set; }
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     public string? GrainSize { get; set; }
+    /// <summary>Qattiqligi: "yumshoq" / "o'rta" / "qattiq" yoki bo'sh.</summary>
+    public string? Hardness { get; set; }
+    /// <summary>Sementlashuvi darajasi yoki bo'sh.</summary>
+    public string? Cementation { get; set; }
+    public int? MineralCode { get; set; }
+    public int? FloraFaunaCode { get; set; }
     public string? Description { get; set; }
 
     public double Interval => System.Math.Round(Bottom - Top, 3);
+
+    public bool IsDeleted { get; set; }
+    public string? DeletedUtc { get; set; }
+    public int? DeletedByUserId { get; set; }
+    public string RowVersion { get; set; } = Guid.NewGuid().ToString("N");
+    public string? Stamp { get; set; }
     public double RecoveryPercent => Interval > 0 ? System.Math.Round(CoreRecoveryM / Interval * 100, 1) : 0;
 }
 
 /// <summary>Namuna (образец) qatori.</summary>
-public class SampleRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
+public class SampleRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject, ITrackedEntity
 {
     public int Id { get; set; }
     public int WellId { get; set; }
@@ -197,10 +274,16 @@ public class SampleRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
     }
 
     public double Length => System.Math.Round(Bottom - Top, 3);
+
+    public bool IsDeleted { get; set; }
+    public string? DeletedUtc { get; set; }
+    public int? DeletedByUserId { get; set; }
+    public string RowVersion { get; set; } = Guid.NewGuid().ToString("N");
+    public string? Stamp { get; set; }
 }
 
 /// <summary>SRP - kern bo'yicha gamma-karotaj (Core_GK) nuqtasi.</summary>
-public class SrpRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
+public class SrpRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject, ITrackedEntity
 {
     public int Id { get; set; }
     public int WellId { get; set; }
@@ -220,4 +303,10 @@ public class SrpRow : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
         get => _coreGk;
         set => SetProperty(ref _coreGk, value);
     }
+
+    public bool IsDeleted { get; set; }
+    public string? DeletedUtc { get; set; }
+    public int? DeletedByUserId { get; set; }
+    public string RowVersion { get; set; } = Guid.NewGuid().ToString("N");
+    public string? Stamp { get; set; }
 }

@@ -1,0 +1,43 @@
+<Window x:Class="GeoDataPro.App.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GeoData Pro" Height="470" Width="440"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Icon="../Assets/AppIcon.ico"
+        Background="{StaticResource WindowBg}"
+        FontFamily="{StaticResource UiFont}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+    <Border Padding="32,28" >
+        <StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,22">
+                <Image Source="../Assets/AppLogo.png" Width="34" Height="34" Stretch="Uniform" Margin="0,0,12,0"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="GeoData Pro" FontSize="17" FontWeight="SemiBold" />
+                    <TextBlock x:Name="ModeText" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Text="Foydalanuvchi" FontSize="11" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5" />
+            <TextBox x:Name="UserBox" MaxLength="64" Margin="0,0,0,14" />
+
+            <TextBlock Text="Parol" FontSize="11" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5" />
+            <PasswordBox x:Name="PassBox" MaxLength="256" Margin="0,0,0,14" />
+
+            <StackPanel x:Name="ConfirmPanel" Visibility="Collapsed">
+                <TextBlock Text="Parolni takrorlang" FontSize="11" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5" />
+                <PasswordBox x:Name="ConfirmBox" MaxLength="256" Margin="0,0,0,14" />
+                <TextBlock Text="Kamida 12 belgi, harf, raqam va belgilar aralashmasi."
+                           TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,0,0,12" />
+            </StackPanel>
+
+            <TextBlock x:Name="MessageText" TextWrapping="Wrap" FontSize="11" MinHeight="34"
+                       Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10" />
+
+            <Button x:Name="SubmitButton" Content="Kirish" Style="{StaticResource PrimaryButton}"
+                    HorizontalAlignment="Stretch" Height="38" Click="OnSubmit" IsDefault="True" />
+        </StackPanel>
+    </Border>
+</Window>

@@ -19,9 +19,12 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="264" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition x:Name="SidebarColumn" Width="264" MinWidth="190" MaxWidth="460" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" MinWidth="520" />
         </Grid.ColumnDefinitions>
+
+        <GridSplitter Grid.Column="1" Style="{StaticResource PanelSplitter}" Width="8" Margin="0" />
 
         <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SidebarBorder}" BorderThickness="0,0,1,0">
             <DockPanel>
@@ -72,6 +75,18 @@
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=minerals}"
                                      Command="{Binding NavigateCommand}" CommandParameter="minerals"
                                      Visibility="Collapsed" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="❀" Content="Flora-Fauna"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=florafauna}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="florafauna"
+                                     Visibility="Collapsed" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="⬤" Content="Gidrookisleniya"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=ironhydroxide}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="ironhydroxide"
+                                     Visibility="Collapsed" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◈" Content="Mineral tarkibi"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=clasticmaterial}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="clasticmaterial"
+                                     Visibility="Collapsed" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="✎" Content="Tavsif shablonlari"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=descriptions}"
                                      Command="{Binding NavigateCommand}" CommandParameter="descriptions"
@@ -85,13 +100,14 @@
                         <TextBlock Text="ASBOBLAR" Style="{StaticResource NavHeader}" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="⇅" Content="Import / Eksport"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=io}"
-                                     Command="{Binding NavigateCommand}" CommandParameter="io" />
+                                     Command="{Binding NavigateCommand}" CommandParameter="io"
+                                     Visibility="{Binding CanExport, Converter={StaticResource BoolToVis}}" />
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
         </Border>
 
-        <DockPanel Grid.Column="1">
+        <DockPanel Grid.Column="2">
             <Border DockPanel.Dock="Top" Height="56" Background="{StaticResource HeaderBg}"
                     BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Padding="24,0">
                 <Grid>
@@ -103,6 +119,17 @@
                         <TextBlock Text="  ›  " Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" />
                         <TextBlock Text="Quduq:" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding State.CurrentWell.Number}" FontWeight="SemiBold" Foreground="{StaticResource AccentDark}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding UserLabel}" Foreground="{StaticResource TextSecondary}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <Button Content="Zaxira" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
+                                Command="{Binding BackupCommand}"
+                                Visibility="{Binding CanBackup, Converter={StaticResource BoolToVis}}" />
+                        <Button Content="Parol" Style="{StaticResource GhostButton}" Margin="0,0,8,0"
+                                Command="{Binding ChangePasswordCommand}" />
+                        <Button Content="Chiqish" Style="{StaticResource GhostButton}"
+                                Command="{Binding SignOutCommand}" />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -132,6 +159,9 @@
                 <v:ReferenceView DataContext="{Binding ColorRef}"   Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=colors}" />
                 <v:ReferenceView DataContext="{Binding TextureRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=textures}" />
                 <v:ReferenceView DataContext="{Binding MineralRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=minerals}" />
+                <v:ReferenceView DataContext="{Binding FloraFaunaRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=florafauna}" />
+                <v:ReferenceView DataContext="{Binding IronHydroxideRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=ironhydroxide}" />
+                <v:ReferenceView DataContext="{Binding ClasticMaterialRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=clasticmaterial}" />
                 <v:ReferenceView DataContext="{Binding DescriptionRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=descriptions}" />
                 <v:WellsView     Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=wells}" />
                 <v:IoView        Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=io}" />

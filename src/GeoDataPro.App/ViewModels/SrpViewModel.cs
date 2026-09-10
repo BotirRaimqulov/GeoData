@@ -6,8 +6,10 @@ using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
+using GeoDataPro.Core.Security;
 using GeoDataPro.App.Services;
+using GeoDataPro.Core.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GeoDataPro.App.ViewModels;
@@ -22,6 +24,8 @@ public partial class SrpViewModel : ObservableObject
 
     [ObservableProperty] private SrpRow? _selected;
     [ObservableProperty] private bool _hasUnsaved;
+
+    public bool CanEdit => _state.Can(Permissions.SampleWrite);
 
     [ObservableProperty] private int _count;
     [ObservableProperty] private double _minGk;
@@ -60,8 +64,7 @@ public partial class SrpViewModel : ObservableObject
         var well = _state.CurrentWell;
         if (well != null)
         {
-            using var db = new AppDbContext();
-            foreach (var r in db.SrpRows.AsNoTracking().Where(s => s.WellId == well.Id).OrderBy(s => s.Md))
+            foreach (var r in _state.Data.GetSrpRows(well.Id))
             {
                 SubscribeRow(r);
                 Rows.Add(r);
@@ -148,26 +151,17 @@ public partial class SrpViewModel : ObservableObject
             return;
         }
 
-        using var db = new AppDbContext();
         try
         {
-            var existingById = db.SrpRows.Where(s => s.WellId == well.Id).ToDictionary(s => s.Id);
-            var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
-            foreach (var g in existingById.Values.Where(e => !keep.Contains(e.Id))) db.SrpRows.Remove(g);
-            foreach (var r in Rows)
-            {
-                r.WellId = well.Id;
-                if (r.Id == 0) db.SrpRows.Add(r);
-                else if (existingById.TryGetValue(r.Id, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(r);
-                else db.SrpRows.Update(r);
-            }
-            db.SaveChanges();
+            _state.Data.SaveSrp(well.Id, Rows.ToList());
         }
         catch (Exception ex)
         {
             AppNotifier.Error("SRP ma'lumotlarini saqlab bo'lmadi.", ex);
             return;
         }
+
+        Load();
 
         UnsubscribeAllRows();
         foreach (var r in Rows) SubscribeRow(r);
