@@ -9,45 +9,19 @@ public static class Seed
 {
     public static void Run(AppDbContext db)
     {
-        if (!db.LithoCodes.Any())
-        {
-            db.LithoCodes.AddRange(LithoSeed());
-            db.SaveChanges();
-        }
-        if (!db.ColorCodes.Any())
-        {
-            db.ColorCodes.AddRange(ColorSeed());
-            db.SaveChanges();
-        }
-        if (!db.TextureCodes.Any())
-        {
-            db.TextureCodes.AddRange(TextureSeed());
-            db.SaveChanges();
-        }
-        if (!db.MineralCodes.Any())
-        {
-            db.MineralCodes.AddRange(MineralSeed());
-            db.SaveChanges();
-        }
-        if (!db.FloraFaunaCodes.Any())
-        {
-            db.FloraFaunaCodes.AddRange(FloraFaunaSeed());
-            db.SaveChanges();
-        }
-        if (!db.IronHydroxideCodes.Any())
-        {
-            db.IronHydroxideCodes.AddRange(IronHydroxideSeed());
-            db.SaveChanges();
-        }
-        if (!db.ClasticMaterialCodes.Any())
-        {
-            db.ClasticMaterialCodes.AddRange(ClasticMaterialSeed());
-            db.SaveChanges();
-        }
+        if (!db.LithoCodes.Any()) { db.LithoCodes.AddRange(LithoSeed()); db.SaveChanges(); }
+        if (!db.ColorCodes.Any()) { db.ColorCodes.AddRange(ColorSeed()); db.SaveChanges(); }
+        if (!db.TextureCodes.Any()) { db.TextureCodes.AddRange(TextureSeed()); db.SaveChanges(); }
+        if (!db.MineralCodes.Any()) { db.MineralCodes.AddRange(MineralSeed()); db.SaveChanges(); }
+        if (!db.FloraFaunaCodes.Any()) { db.FloraFaunaCodes.AddRange(FloraFaunaSeed()); db.SaveChanges(); }
+        if (!db.IronHydroxideCodes.Any()) { db.IronHydroxideCodes.AddRange(IronHydroxideSeed()); db.SaveChanges(); }
+        if (!db.ClasticMaterialCodes.Any()) { db.ClasticMaterialCodes.AddRange(ClasticMaterialSeed()); db.SaveChanges(); }
 
         MigrateOrganicRemainsFromMinerals(db);
         ReseedMineralsIfOutdated(db);
         ReseedTexturesIfOutdated(db);
+        ReseedFloraFaunaIfOutdated(db);
+        ReseedIronHydroxidesIfOutdated(db);
         BackfillRussianNames(db);
 
         if (!db.DescriptionTemplates.Any())
@@ -174,17 +148,11 @@ public static class Seed
         return TexturesRows.Select(r => new TextureCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
     }
 
-    /// <summary>
-    /// Eski tekstura ro'yxati yangi ro'yxat bilan mos kelmasa — eski yozuvlarni o'chirib,
-    /// yangilarini qo'shamiz.
-    /// </summary>
     static void ReseedTexturesIfOutdated(AppDbContext db)
     {
         var newNames = new HashSet<string>(TexturesRows.Select(r => r.uz), StringComparer.Ordinal);
         var existing = db.TextureCodes.ToList();
-        bool alreadyNew = existing.Any(x => newNames.Contains(x.Name));
-        if (alreadyNew) return;
-
+        if (existing.Any(x => newNames.Contains(x.Name))) return;
         db.TextureCodes.RemoveRange(existing);
         db.SaveChanges();
         db.TextureCodes.AddRange(TextureSeed());
@@ -195,59 +163,89 @@ public static class Seed
     static readonly (string uz, string ru, string? png)[] MineralsRows =
     {
         // --- Sulfidlar ---
-        ("Pirit: Aniq kristallik",                         "Пирит: яснокристаллический",                         "pirit_aniq_kristallik.png"),
-        ("Pirit: Konkretsion",                             "Пирит: конкреционный",                               "pirit_konkretsion.png"),
-        ("Pirit: Mayda dispers (sochuvchan)",              "Пирит: тонкодисперсный (сыпучка)",                   "pirit_mayda_dispers.png"),
-        ("Markazit",                                       "Марказит",                                           "markazit.png"),
-        ("Molibdenit",                                     "Молибденит",                                         "molibdenit.png"),
+        ("Pirit: Aniq kristallik",                        "Пирит: яснокристаллический",                       "pirit_aniq_kristallik.png"),
+        ("Pirit: Konkretsion",                            "Пирит: конкреционный",                             "pirit_konkretsion.png"),
+        ("Pirit: Mayda dispers (sochuvchan)",             "Пирит: тонкодисперсный (сыпучка)",                 "pirit_mayda_dispers.png"),
+        ("Xalkopirit",                                    "Халькопирит",                                      "xalkopirit.png"),
+        ("Markazit",                                      "Марказит",                                         "markazit.png"),
+        ("Galenit",                                       "Галенит",                                          "galenit.png"),
+        ("Sfalerit",                                      "Сфалерит",                                         "sfalerit.png"),
+        ("Molibdenit",                                    "Молибденит",                                       "molibdenit.png"),
 
         // --- Karbonatlar ---
-        ("Kaltsit",                                        "Кальцит",                                            "kaltsit.png"),
-        ("Dolomit",                                        "Доломит",                                            "dolomit.png"),
-        ("Siderit",                                        "Сидерит",                                            null),
-        ("Ankerit",                                        "Анкерит",                                            null),
+        ("Kaltsit",                                       "Кальцит",                                          "kaltsit.png"),
+        ("Dolomit",                                       "Доломит",                                          "dolomit.png"),
+        ("Siderit",                                       "Сидерит",                                          null),
+        ("Ankerit",                                       "Анкерит",                                          null),
 
         // --- Kremniyli minerallar ---
-        ("Kvars",                                          "Кварц",                                              null),
-        ("Xalsedon",                                       "Халцедон",                                           null),
-        ("Opal",                                           "Опал",                                               null),
+        ("Kvars",                                         "Кварц",                                            null),
+        ("Xalsedon",                                      "Халцедон",                                         null),
+        ("Opal",                                          "Опал",                                             null),
 
         // --- Loy minerallari ---
-        ("Kaolinit",                                       "Каолинит",                                           "kaolinit.png"),
-        ("Illit",                                          "Иллит",                                              null),
-        ("Montmorillonit",                                 "Монтмориллонит",                                     null),
-        ("Glaukonit",                                      "Глауконит",                                          "glaukonit.png"),
+        ("Kaolinit",                                      "Каолинит",                                         "kaolinit.png"),
+        ("Illit",                                         "Иллит",                                            null),
+        ("Montmorillonit",                                "Монтмориллонит",                                   null),
+        ("Smektit",                                       "Смектит",                                          null),
 
         // --- Fosfatlar ---
-        ("Nodulyar fosforit",                              "Желваковый фосфорит",                                "zhelvakovi_fosforit.png"),
-        ("Fosforit qatlamli",                              "Фосфорит пластовый",                                 null),
+        ("Nodulyar (toshsimon) fosforit",                 "Желваковый фосфорит",                              "zhelvakovi_fosforit.png"),
+        ("Fosforit: qatlamli",                            "Фосфорит: пластовый",                              null),
 
         // --- Sulfatlar ---
-        ("Gips: Mayda donador, massiv",                    "Гипс: тонкозернистый, массивный",                   "gips_mayda_donador_massiv.png"),
-        ("Gips: Kristallik",                               "Гипс: кристаллический",                              null),
-        ("Angidrit",                                       "Ангидрит",                                           null),
-        ("Tselestin",                                      "Целестин",                                           "tselestin.png"),
-        ("Barit",                                          "Барит",                                              null),
+        ("Gips: Mayda donador, massiv (shu jumladan angidrit)", "Гипс: тонкозернистый, массивный (в том числе ангидрит)", "gips_mayda_donador_massiv.png"),
+        ("Gips: Kristallik",                              "Гипс: кристаллический",                            null),
+        ("Angidrit",                                      "Ангидрит",                                         null),
+        ("Tselestin",                                     "Целестин",                                         "tselestin.png"),
+        ("Barit",                                         "Барит",                                            null),
 
         // --- Temir minerallari ---
-        ("Gematit",                                        "Гематит",                                            null),
-        ("Magnetit",                                       "Магнетит",                                           null),
-        ("Limonit",                                        "Лимонит",                                            null),
+        ("Gematit",                                       "Гематит",                                          null),
+        ("Magnetit",                                      "Магнетит",                                         null),
+        ("Gidrogematit",                                  "Гидрогематит",                                     null),
+        ("Getit",                                         "Гётит",                                            null),
+        ("Limonit",                                       "Лимонит",                                          null),
 
         // --- Marganes ---
-        ("Piroluzit",                                      "Пиролюзит",                                          null),
+        ("Piroluzit",                                     "Пиролюзит",                                        null),
+        ("Psilomelan",                                    "Псиломелан",                                       null),
 
-        // --- Dala shpati va boshqa ---
-        ("Plagioklaz",                                     "Плагиоклаз",                                         null),
-        ("Muskovit",                                       "Мусковит",                                           null),
-        ("Biotit",                                         "Биотит",                                             null),
-        ("Xlorit",                                         "Хлорит",                                             null),
+        // --- Yashil minerallar ---
+        ("Glaukonit",                                     "Глауконит",                                        "glaukonit.png"),
+
+        // --- Dala shpati va boshqa detrit minerallar ---
+        ("Plagioklaz",                                    "Плагиоклаз",                                       null),
+        ("Kaliyli dala shpati",                           "Калиевый полевой шпат",                            null),
+        ("Muskovit",                                      "Мусковит",                                         null),
+        ("Biotit",                                        "Биотит",                                           null),
+        ("Xlorit",                                        "Хлорит",                                           null),
+
+        // --- Evaporit minerallari ---
+        ("Galit",                                         "Галит",                                            null),
+        ("Silvin",                                        "Сильвин",                                          null),
+        ("Karnallit",                                     "Карналлит",                                        null),
     };
 
     static IEnumerable<MineralCode> MineralSeed()
     {
         int c = 1;
         return MineralsRows.Select(r => new MineralCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
+    }
+
+    /// <summary>
+    /// Mavjud bazadagi mineral yozuvlaridan yangi ro'yxatda yo'q bo'lganlarni qo'shadi.
+    /// Mavjud yozuvlar o'chirilmaydi — journal qatorlaridagi kodlar saqlanib qoladi.
+    /// </summary>
+    static void ReseedMineralsIfOutdated(AppDbContext db)
+    {
+        var existingNames = new HashSet<string>(db.MineralCodes.Select(x => x.Name), StringComparer.Ordinal);
+        var toAdd = MineralsRows.Where(r => !existingNames.Contains(r.uz)).ToList();
+        if (toAdd.Count == 0) return;
+        int nextCode = db.MineralCodes.Any() ? db.MineralCodes.Max(x => x.Code) + 1 : 1;
+        foreach (var r in toAdd)
+            db.MineralCodes.Add(new MineralCode { Code = nextCode++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
+        db.SaveChanges();
     }
 
     // ---- Flora-Fauna ----
@@ -257,13 +255,11 @@ public static class Seed
         ("Yirik uglerodli yog'och parchalari",               "Крупные углефицированные обломки древесины",    "yirik_uglerodli_yogoch_parchalari.png"),
         ("Qattiqlashgan yog'och bo'laklari",                 "Окремнелые обломки древесины",                  "yogochning_kremniylashgan_bolakchalari.png"),
         ("O'simlik ildizlari",                               "Корни растений",                                "osimlik_ildizlari.png"),
-        ("O'simlik ildizlari izlari",                        "Следы корней растений",                         "osimlik_ildizlari_izlari.png"),
-        ("O'simlik barglari izlari",                         "Отпечатки листьев растений",                    "osimlik_barglari_izlari.png"),
         ("Baliq suyaklarining fosfatli qoldiqlari",          "Фосфатные костные остатки рыб",                 "baliq_suyagining_fosfat_qoldiqlari.png"),
         ("Akula tishi",                                      "Зубы акул",                                     "akula_tishi.png"),
         ("Quruqlikdagi umurtqali hayvonlarning suyaklari",   "Кости наземных позвоночных",                    "quruqlikdagi_umurtqali_hayvonlarning_suyaklari.png"),
-        ("Gastropodlar",                                     "Гастроподы",                                    "gastropodlar.png"),
-        ("Braxiopodlar",                                     "Брахиоподы",                                    "braxiopodlar.png"),
+        ("O'simlik ildizlari izlari",                        "Отпечатки корней растений",                     "osimlik_ildizlari_izlari.png"),
+        ("O'simlik barglari",                                "Отпечатки листьев растений",                    "osimlik_barglari_izlari.png"),
     };
 
     static IEnumerable<FloraFaunaCode> FloraFaunaSeed()
@@ -272,16 +268,28 @@ public static class Seed
         return FloraFaunaRows.Select(r => new FloraFaunaCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
     }
 
+    /// <summary>
+    /// Eski bazalarda "Gastropodlar", "Braxiopodlar" va "O'simlik barglari izlari" yozuvlari
+    /// bo'lishi mumkin — ularni yangi ro'yxatga moslashtiradi.
+    /// </summary>
+    static void ReseedFloraFaunaIfOutdated(AppDbContext db)
+    {
+        // "O'simlik barglari izlari" -> "O'simlik barglari" nomini yangilaymiz
+        var renamed = db.FloraFaunaCodes.FirstOrDefault(x => x.Name == "O'simlik barglari izlari");
+        if (renamed != null) renamed.Name = "O'simlik barglari";
+
+        var newNames = new HashSet<string>(FloraFaunaRows.Select(r => r.uz), StringComparer.Ordinal);
+        var stale = db.FloraFaunaCodes.Where(x => !newNames.Contains(x.Name)).ToList();
+        if (stale.Count == 0 && renamed == null) return;
+        db.FloraFaunaCodes.RemoveRange(stale);
+        db.SaveChanges();
+    }
+
     // ---- Temir gidrooksidlari (Gidrookisleniya) ----
     static readonly (string uz, string ru, string? png)[] IronHydroxideRows =
     {
         ("Temir gidrooksidlari: Qizil",          "Гидроокислы железа: красные",         "temir_gidrooksidlari_qizil.png"),
         ("Temir gidrooksidlari: Qo'ng'ir-sariq", "Гидроокислы железа: буро-желтые",     "temir_gidrooksidlari_qongir_sariq.png"),
-        ("Marganes oksidlari",                   "Окислы марганца",                     "marganes_oksidlari.png"),
-        ("Tug'ma selen (Se)",                    "Селен самородный",                    "selen_samorodniy.png"),
-        ("Uran qorasi",                          "Урановая чернь",                      "uran_qorasi.png"),
-        ("Uranilsilikatlar",                     "Уранилсиликаты",                      "uranilsilikati.png"),
-        ("Uran slyudalari",                      "Урановые слюдки",                     "uran_slyudalari.png"),
     };
 
     static IEnumerable<IronHydroxideCode> IronHydroxideSeed()
@@ -290,7 +298,20 @@ public static class Seed
         return IronHydroxideRows.Select(r => new IronHydroxideCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
     }
 
-    // ---- Mineral tarkibi (obломочный материал) ----
+    /// <summary>
+    /// Eski bazalarda "Marganes oksidlari", "Uran qorasi" va boshqa yozuvlar bo'lishi mumkin —
+    /// yangi 2 ta yozuv bilan mos kelmaydiganlarni o'chiramiz.
+    /// </summary>
+    static void ReseedIronHydroxidesIfOutdated(AppDbContext db)
+    {
+        var newNames = new HashSet<string>(IronHydroxideRows.Select(r => r.uz), StringComparer.Ordinal);
+        var stale = db.IronHydroxideCodes.Where(x => !newNames.Contains(x.Name)).ToList();
+        if (stale.Count == 0) return;
+        db.IronHydroxideCodes.RemoveRange(stale);
+        db.SaveChanges();
+    }
+
+    // ---- Mineral tarkibi (oblomochny material) ----
     static readonly (string uz, string ru, string? png)[] ClasticMaterialRows =
     {
         ("Kvars (Q)",             "Кварц (Q)",              null),
@@ -305,29 +326,8 @@ public static class Seed
         return ClasticMaterialRows.Select(r => new ClasticMaterialCode { Code = c++, Name = r.uz, NameRu = r.ru, PatternKey = r.png });
     }
 
-    /// <summary>
-    /// Eski bazalarda Mineralizatsiya jadvali eski 13 yozuvdan iborat edi.
-    /// Yangi keng ro'yxat (MineralsRows) bilan almashtiramiz: eski yozuvlarni o'chirib,
-    /// yangilarini qo'shamiz. JournalRow.MineralCode bog'liqliklari yo'qoladi — foydalanuvchi
-    /// qayta tanlashi kerak bo'ladi (eski kodlar yangi ro'yxatda har xil tartibda).
-    /// </summary>
-    static void ReseedMineralsIfOutdated(AppDbContext db)
-    {
-        var newNames = new HashSet<string>(MineralsRows.Select(r => r.uz), StringComparer.Ordinal);
-        var existing = db.MineralCodes.ToList();
-        bool alreadyNew = existing.Any(x => newNames.Contains(x.Name));
-        if (alreadyNew) return;
+    // ---- Migratsiya metodlari ----
 
-        db.MineralCodes.RemoveRange(existing);
-        db.SaveChanges();
-        db.MineralCodes.AddRange(MineralSeed());
-        db.SaveChanges();
-    }
-
-    /// <summary>
-    /// Eski bazalarda flora-fauna qoldiqlari "Mineralizatsiya" spravochnigida saqlangan edi —
-    /// ularni alohida Flora-Fauna spravochnigiga ko'chiramiz.
-    /// </summary>
     static readonly string[] FloraFaunaMigratedFromMineral =
     {
         "Ko'mir qoldiqlari (detrit)",
@@ -368,7 +368,6 @@ public static class Seed
         if (changed) db.SaveChanges();
     }
 
-    /// <summary>Eski bazalarda NameRu bo'sh qatorlarni ruscha nom bilan to'ldiradi.</summary>
     static void BackfillRussianNames(AppDbContext db)
     {
         bool changed = false;
