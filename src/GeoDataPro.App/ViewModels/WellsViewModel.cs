@@ -3,8 +3,10 @@ using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 using GeoDataPro.App.Services;
+using GeoDataPro.Core.Security;
+using GeoDataPro.Core.Services;
 
 namespace GeoDataPro.App.ViewModels;
 
@@ -55,11 +57,14 @@ public partial class WellsViewModel : ObservableObject
 
     void Well_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => HasUnsaved = true;
 
+    public bool CanManageProjects => _state.Can(Permissions.ProjectUpdate);
+    public bool CanCreateProjects => _state.Can(Permissions.ProjectCreate);
+    public bool CanDeleteWells => _state.Can(Permissions.ProjectDelete);
+
     public void Load()
     {
         Projects.Clear();
-        using var db = new AppDbContext();
-        foreach (var p in db.Projects.OrderBy(p => p.Name)) Projects.Add(p);
+        foreach (var p in _state.Data.GetProjects()) Projects.Add(p);
         SelectedProject = Projects.FirstOrDefault(p => p.Id == _state.CurrentProject?.Id) ?? Projects.FirstOrDefault();
         RaiseStatsChanged();
     }
@@ -68,13 +73,13 @@ public partial class WellsViewModel : ObservableObject
     {
         Wells.Clear();
         if (SelectedProject == null) return;
-        using var db = new AppDbContext();
-        var wells = db.Wells.Where(w => w.ProjectId == SelectedProject.Id).OrderBy(w => w.Number).ToList();
-        foreach (var w in wells)
+        foreach (var w in _state.Data.GetWells(SelectedProject.Id))
         {
-            int jr = db.JournalRows.Count(r => r.WellId == w.Id);
-            int sr = db.SampleRows.Count(r => r.WellId == w.Id);
-            Wells.Add(new WellListItem(w) { JournalCount = jr, SampleCount = sr });
+            Wells.Add(new WellListItem(w)
+            {
+                JournalCount = _state.Data.CountJournalRows(w.Id),
+                SampleCount = _state.Data.CountSampleRows(w.Id),
+            });
         }
         RaiseStatsChanged();
     }
@@ -84,11 +89,9 @@ public partial class WellsViewModel : ObservableObject
     {
         var name = Views.PromptDialog.Ask("Yangi loyiha nomi:", "Loyiha qo'shish", "Loyiha-yangi");
         if (string.IsNullOrWhiteSpace(name)) return;
-        using var db = new AppDbContext();
         try
         {
-            db.Projects.Add(new Project { Name = name.Trim() });
-            db.SaveChanges();
+            _state.Data.CreateProject(name);
         }
         catch (Exception ex)
         {
@@ -106,11 +109,9 @@ public partial class WellsViewModel : ObservableObject
         if (SelectedProject == null) return;
         var num = Views.PromptDialog.Ask("Yangi quduq raqami:", "Quduq qo'shish", "0000");
         if (string.IsNullOrWhiteSpace(num)) return;
-        using var db = new AppDbContext();
         try
         {
-            db.Wells.Add(new Well { ProjectId = SelectedProject.Id, Number = num.Trim() });
-            db.SaveChanges();
+            _state.Data.CreateWell(SelectedProject.Id, num);
         }
         catch (Exception ex)
         {
@@ -140,19 +141,22 @@ public partial class WellsViewModel : ObservableObject
             return;
         }
 
-        using var db = new AppDbContext();
-        var w = db.Wells.Find(SelectedWell.Model.Id);
-        if (w == null) return;
+        var edited = new Well
+        {
+            Id = SelectedWell.Model.Id,
+            ProjectId = SelectedWell.Model.ProjectId,
+            Number = SelectedWell.Number.Trim(),
+            RigNumber = SelectedWell.RigNumber,
+            StartDepth = SelectedWell.StartDepth,
+            EndDepth = SelectedWell.EndDepth,
+            StartDate = SelectedWell.StartDate,
+            EndDate = SelectedWell.EndDate,
+            Geologist = SelectedWell.Geologist,
+        };
+
         try
         {
-            w.Number = SelectedWell.Number.Trim();
-            w.RigNumber = SelectedWell.RigNumber;
-            w.StartDepth = SelectedWell.StartDepth;
-            w.EndDepth = SelectedWell.EndDepth;
-            w.StartDate = SelectedWell.StartDate;
-            w.EndDate = SelectedWell.EndDate;
-            w.Geologist = SelectedWell.Geologist;
-            db.SaveChanges();
+            _state.Data.UpdateWell(edited);
         }
         catch (Exception ex)
         {
@@ -161,7 +165,7 @@ public partial class WellsViewModel : ObservableObject
         }
 
         LoadWells();
-        _state.Reload(SelectedProject?.Id, w.Id);
+        _state.Reload(SelectedProject?.Id, edited.Id);
         HasUnsaved = false;
         AppNotifier.Info("Quduq saqlandi.");
     }
@@ -170,18 +174,12 @@ public partial class WellsViewModel : ObservableObject
     void DeleteWell()
     {
         if (SelectedWell == null) return;
-        if (MessageBox.Show($"'{SelectedWell.Number}' quduqni va unga bog'liq barcha ma'lumotlarni o'chirasizmi?",
+        if (MessageBox.Show($"'{SelectedWell.Number}' quduq arxivga o'tkaziladi. Davom etasizmi?",
             "Tasdiqlash", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-        using var db = new AppDbContext();
-        var id = SelectedWell.Model.Id;
-        db.JournalRows.RemoveRange(db.JournalRows.Where(r => r.WellId == id));
-        db.SampleRows.RemoveRange(db.SampleRows.Where(r => r.WellId == id));
-        db.SrpRows.RemoveRange(db.SrpRows.Where(r => r.WellId == id));
-        var w = db.Wells.Find(id);
-        if (w != null) db.Wells.Remove(w);
+
         try
         {
-            db.SaveChanges();
+            _state.Data.SoftDeleteWell(SelectedWell.Model.Id);
         }
         catch (Exception ex)
         {

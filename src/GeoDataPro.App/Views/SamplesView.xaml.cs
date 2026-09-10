@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 using GeoDataPro.App.ViewModels;
 
 namespace GeoDataPro.App.Views;

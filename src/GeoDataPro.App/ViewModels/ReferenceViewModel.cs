@@ -5,8 +5,10 @@ using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 using GeoDataPro.App.Services;
+using GeoDataPro.Core.Security;
+using GeoDataPro.Core.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GeoDataPro.App.ViewModels;
@@ -14,13 +16,16 @@ namespace GeoDataPro.App.ViewModels;
 /// <summary>Litologik kodlar / ranglar / teksturalar / minerallar spravochnigi tahrirlagichi.</summary>
 public partial class ReferenceViewModel : ObservableObject
 {
-    public enum Kind { Litho, Color, Texture, Mineral, Description }
+    public enum Kind { Litho, Color, Texture, Mineral, FloraFauna, IronHydroxide, ClasticMaterial, Description }
     public Kind CurrentKind { get; }
 
     public ObservableCollection<LithoCode> Litho { get; } = new();
     public ObservableCollection<ColorCode> Colors { get; } = new();
     public ObservableCollection<TextureCode> Textures { get; } = new();
     public ObservableCollection<MineralCode> Minerals { get; } = new();
+    public ObservableCollection<FloraFaunaCode> FloraFauna { get; } = new();
+    public ObservableCollection<IronHydroxideCode> IronHydroxides { get; } = new();
+    public ObservableCollection<ClasticMaterialCode> ClasticMaterials { get; } = new();
     public ObservableCollection<DescriptionTemplate> Descriptions { get; } = new();
 
     /// <summary>Jadvalda ko'p tanlangan qatorlar (Ctrl+Click / Shift+Click orqali).</summary>
@@ -42,12 +47,18 @@ public partial class ReferenceViewModel : ObservableObject
             Kind.Color => "Kern ranglari",
             Kind.Texture => "Teksturalar",
             Kind.Mineral => "Mineralizatsiya",
+            Kind.FloraFauna => "Flora-Fauna",
+            Kind.IronHydroxide => "Gidrookisleniya",
+            Kind.ClasticMaterial => "Mineral tarkibi",
             _ => "Tavsif shablonlari",
         };
         Litho.CollectionChanged += Collection_Changed;
         Colors.CollectionChanged += Collection_Changed;
         Textures.CollectionChanged += Collection_Changed;
         Minerals.CollectionChanged += Collection_Changed;
+        FloraFauna.CollectionChanged += Collection_Changed;
+        IronHydroxides.CollectionChanged += Collection_Changed;
+        ClasticMaterials.CollectionChanged += Collection_Changed;
         Descriptions.CollectionChanged += Collection_Changed;
         Load();
     }
@@ -58,18 +69,25 @@ public partial class ReferenceViewModel : ObservableObject
             HasUnsaved = true;
     }
 
+    public bool CanEdit => AppState.Instance.Can(Permissions.ReferenceWrite);
+
     public void Load()
     {
-        using var db = new AppDbContext();
-        Litho.Clear(); Colors.Clear(); Textures.Clear(); Minerals.Clear(); Descriptions.Clear();
+        Litho.Clear(); Colors.Clear(); Textures.Clear(); Minerals.Clear(); FloraFauna.Clear();
+        IronHydroxides.Clear(); ClasticMaterials.Clear(); Descriptions.Clear();
         HasUnsaved = false;
+
+        var snapshot = AppState.Instance.Data.GetReferences();
         switch (CurrentKind)
         {
-            case Kind.Litho: foreach (var x in db.LithoCodes.AsNoTracking().OrderBy(x => x.Code)) Litho.Add(x); break;
-            case Kind.Color: foreach (var x in db.ColorCodes.AsNoTracking().OrderBy(x => x.Code)) Colors.Add(x); break;
-            case Kind.Texture: foreach (var x in db.TextureCodes.AsNoTracking().OrderBy(x => x.Code)) Textures.Add(x); break;
-            case Kind.Mineral: foreach (var x in db.MineralCodes.AsNoTracking().OrderBy(x => x.Code)) Minerals.Add(x); break;
-            case Kind.Description: foreach (var x in db.DescriptionTemplates.AsNoTracking().OrderBy(x => x.Text)) Descriptions.Add(x); break;
+            case Kind.Litho: foreach (var x in snapshot.Litho) Litho.Add(x); break;
+            case Kind.Color: foreach (var x in snapshot.Colors) Colors.Add(x); break;
+            case Kind.Texture: foreach (var x in snapshot.Textures) Textures.Add(x); break;
+            case Kind.Mineral: foreach (var x in snapshot.Minerals) Minerals.Add(x); break;
+            case Kind.FloraFauna: foreach (var x in snapshot.FloraFauna) FloraFauna.Add(x); break;
+            case Kind.IronHydroxide: foreach (var x in snapshot.IronHydroxides) IronHydroxides.Add(x); break;
+            case Kind.ClasticMaterial: foreach (var x in snapshot.ClasticMaterials) ClasticMaterials.Add(x); break;
+            case Kind.Description: foreach (var x in snapshot.Descriptions) Descriptions.Add(x); break;
         }
         // Add paytida HasUnsaved true bo'lib qoladi — load holatida uni tozalaymiz.
         HasUnsaved = false;
@@ -88,6 +106,12 @@ public partial class ReferenceViewModel : ObservableObject
                 Textures.Add(new TextureCode { Code = (Textures.Count == 0 ? 1 : Textures.Max(x => x.Code) + 1), Name = "Yangi" }); break;
             case Kind.Mineral:
                 Minerals.Add(new MineralCode { Code = (Minerals.Count == 0 ? 1 : Minerals.Max(x => x.Code) + 1), Name = "Yangi" }); break;
+            case Kind.FloraFauna:
+                FloraFauna.Add(new FloraFaunaCode { Code = (FloraFauna.Count == 0 ? 1 : FloraFauna.Max(x => x.Code) + 1), Name = "Yangi" }); break;
+            case Kind.IronHydroxide:
+                IronHydroxides.Add(new IronHydroxideCode { Code = (IronHydroxides.Count == 0 ? 1 : IronHydroxides.Max(x => x.Code) + 1), Name = "Yangi" }); break;
+            case Kind.ClasticMaterial:
+                ClasticMaterials.Add(new ClasticMaterialCode { Code = (ClasticMaterials.Count == 0 ? 1 : ClasticMaterials.Max(x => x.Code) + 1), Name = "Yangi" }); break;
             case Kind.Description:
                 Descriptions.Add(new DescriptionTemplate { Text = "Yangi tavsif" }); break;
         }
@@ -119,6 +143,9 @@ public partial class ReferenceViewModel : ObservableObject
                 case ColorCode c: Colors.Remove(c); break;
                 case TextureCode t: Textures.Remove(t); break;
                 case MineralCode m: Minerals.Remove(m); break;
+                case FloraFaunaCode f: FloraFauna.Remove(f); break;
+                case IronHydroxideCode ih: IronHydroxides.Remove(ih); break;
+                case ClasticMaterialCode cm: ClasticMaterials.Remove(cm); break;
                 case DescriptionTemplate d: Descriptions.Remove(d); break;
             }
         }
@@ -133,18 +160,9 @@ public partial class ReferenceViewModel : ObservableObject
             return;
         }
 
-        using var db = new AppDbContext();
         try
         {
-            switch (CurrentKind)
-            {
-                case Kind.Litho: Sync(db, db.LithoCodes, Litho, x => x.Id); break;
-                case Kind.Color: Sync(db, db.ColorCodes, Colors, x => x.Id); break;
-                case Kind.Texture: Sync(db, db.TextureCodes, Textures, x => x.Id); break;
-                case Kind.Mineral: Sync(db, db.MineralCodes, Minerals, x => x.Id); break;
-                case Kind.Description: Sync(db, db.DescriptionTemplates, Descriptions, x => x.Id); break;
-            }
-            db.SaveChanges();
+            AppState.Instance.Data.SaveReferences(MapKind(CurrentKind), CurrentItems());
         }
         catch (Exception ex)
         {
@@ -158,24 +176,29 @@ public partial class ReferenceViewModel : ObservableObject
         AppNotifier.Info("Spravochnik saqlandi.");
     }
 
-    static void Sync<T>(AppDbContext db,
-        Microsoft.EntityFrameworkCore.DbSet<T> set,
-        System.Collections.Generic.IEnumerable<T> items,
-        System.Func<T, int> id) where T : class
+    static ReferenceKind MapKind(Kind kind) => kind switch
     {
-        var list = items.ToList();
-        var existing = set.ToList();
-        var existingById = existing.Where(x => id(x) != 0).ToDictionary(id);
-        var keep = list.Where(x => id(x) != 0).Select(id).ToHashSet();
-        foreach (var g in existing.Where(e => !keep.Contains(id(e)))) set.Remove(g);
-        foreach (var x in list)
-        {
-            var entityId = id(x);
-            if (entityId == 0) set.Add(x);
-            else if (existingById.TryGetValue(entityId, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(x);
-            else set.Update(x);
-        }
-    }
+        Kind.Litho => ReferenceKind.Litho,
+        Kind.Color => ReferenceKind.Color,
+        Kind.Texture => ReferenceKind.Texture,
+        Kind.Mineral => ReferenceKind.Mineral,
+        Kind.FloraFauna => ReferenceKind.FloraFauna,
+        Kind.IronHydroxide => ReferenceKind.IronHydroxide,
+        Kind.ClasticMaterial => ReferenceKind.ClasticMaterial,
+        _ => ReferenceKind.Description,
+    };
+
+    System.Collections.Generic.List<object> CurrentItems() => CurrentKind switch
+    {
+        Kind.Litho => Litho.Cast<object>().ToList(),
+        Kind.Color => Colors.Cast<object>().ToList(),
+        Kind.Texture => Textures.Cast<object>().ToList(),
+        Kind.Mineral => Minerals.Cast<object>().ToList(),
+        Kind.FloraFauna => FloraFauna.Cast<object>().ToList(),
+        Kind.IronHydroxide => IronHydroxides.Cast<object>().ToList(),
+        Kind.ClasticMaterial => ClasticMaterials.Cast<object>().ToList(),
+        _ => Descriptions.Cast<object>().ToList(),
+    };
 
     bool Validate(out string message)
     {
@@ -189,6 +212,12 @@ public partial class ReferenceViewModel : ObservableObject
                 return ValidateCodes(Textures.Select(x => (x.Code, x.Name)), "tekstura kodi", out message);
             case Kind.Mineral:
                 return ValidateCodes(Minerals.Select(x => (x.Code, x.Name)), "mineral kodi", out message);
+            case Kind.FloraFauna:
+                return ValidateCodes(FloraFauna.Select(x => (x.Code, x.Name)), "flora-fauna kodi", out message);
+            case Kind.IronHydroxide:
+                return ValidateCodes(IronHydroxides.Select(x => (x.Code, x.Name)), "gidrookisleniya kodi", out message);
+            case Kind.ClasticMaterial:
+                return ValidateCodes(ClasticMaterials.Select(x => (x.Code, x.Name)), "mineral tarkibi kodi", out message);
             case Kind.Description:
                 if (Descriptions.Any(x => string.IsNullOrWhiteSpace(x.Text)))
                 {

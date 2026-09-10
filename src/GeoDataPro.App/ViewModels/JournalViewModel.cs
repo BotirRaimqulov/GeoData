@@ -6,8 +6,10 @@ using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
+using GeoDataPro.Core.Security;
 using GeoDataPro.App.Services;
+using GeoDataPro.Core.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GeoDataPro.App.ViewModels;
@@ -24,6 +26,8 @@ public partial class JournalViewModel : ObservableObject
 
     [ObservableProperty] private JournalRowVm? _selected;
     [ObservableProperty] private bool _hasUnsaved;
+
+    public bool CanEdit => _state.Can(Permissions.SampleWrite);
 
     public RefCache Ref => _ref;
 
@@ -83,10 +87,7 @@ public partial class JournalViewModel : ObservableObject
         var well = _state.CurrentWell;
         if (well == null) { Recalc(); return; }
 
-        using var db = new AppDbContext();
-        var rows = db.JournalRows.AsNoTracking()
-                                 .Where(r => r.WellId == well.Id)
-                                 .OrderBy(r => r.OrderNo).ThenBy(r => r.Top).ToList();
+        var rows = _state.Data.GetJournalRows(well.Id);
         foreach (var r in rows)
         {
             var vm = new JournalRowVm(r);
@@ -115,27 +116,9 @@ public partial class JournalViewModel : ObservableObject
             return;
         }
 
-        using var db = new AppDbContext();
         try
         {
-            var existingById = db.JournalRows.Where(r => r.WellId == well.Id).ToDictionary(r => r.Id);
-            var keepIds = Rows.Where(r => r.Model.Id != 0).Select(r => r.Model.Id).ToHashSet();
-
-            foreach (var gone in existingById.Values.Where(e => !keepIds.Contains(e.Id)))
-                db.JournalRows.Remove(gone);
-
-            int order = 1;
-            foreach (var vm in Rows)
-            {
-                var m = vm.Model;
-                m.ZoneName = string.IsNullOrWhiteSpace(m.ZoneName) ? null : m.ZoneName.Trim();
-                m.OrderNo = order++;
-                m.WellId = well.Id;
-                if (m.Id == 0) db.JournalRows.Add(m);
-                else if (existingById.TryGetValue(m.Id, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(m);
-                else db.JournalRows.Update(m);
-            }
-            db.SaveChanges();
+            _state.Data.SaveJournal(well.Id, Rows.Select(x => x.Model).ToList());
         }
         catch (Exception ex)
         {
@@ -143,7 +126,7 @@ public partial class JournalViewModel : ObservableObject
             return;
         }
 
-        foreach (var vm in Rows) vm.ClearDirty();
+        Load();
         HasUnsaved = false;
         _state.RaiseDataChanged();
     }
@@ -173,8 +156,11 @@ public partial class JournalViewModel : ObservableObject
         {
             Top = s.Bottom, Bottom = Math.Round(s.Bottom + s.Interval, 2),
             CoreRecoveryM = s.CoreRecoveryM, ZoneName = s.ZoneName,
-            LithoCode = s.LithoCode, ColorCode = s.ColorCode, TextureCode = s.TextureCode,
-            MineralCode = s.MineralCode, GrainSize = s.GrainSize,
+            LithoCode = s.LithoCode, ColorCode = s.ColorCode,
+            IronHydroxideCode = s.IronHydroxideCode, Composition = s.Composition,
+            ClasticMaterialCodes = s.ClasticMaterialCodes, TextureCode = s.TextureCode,
+            GrainSize = s.GrainSize, Hardness = s.Hardness, Cementation = s.Cementation,
+            MineralCode = s.MineralCode, FloraFaunaCode = s.FloraFaunaCode,
             Description = s.Description,
         };
         var vm = new JournalRowVm(m);

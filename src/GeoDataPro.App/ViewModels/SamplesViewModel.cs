@@ -7,8 +7,10 @@ using System.Windows;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
+using GeoDataPro.Core.Security;
 using GeoDataPro.App.Services;
+using GeoDataPro.Core.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GeoDataPro.App.ViewModels;
@@ -43,6 +45,8 @@ public partial class SamplesViewModel : ObservableObject
     [ObservableProperty] private int _count;
     [ObservableProperty] private double _totalLength;
     [ObservableProperty] private bool _hasUnsaved;
+
+    public bool CanEdit => _state.Can(Permissions.SampleWrite);
 
     partial void OnSelectedSampleTypeCodeChanged(int? value)
     {
@@ -87,8 +91,7 @@ public partial class SamplesViewModel : ObservableObject
         var well = _state.CurrentWell;
         if (well != null)
         {
-            using var db = new AppDbContext();
-            foreach (var r in db.SampleRows.AsNoTracking().Where(s => s.WellId == well.Id).OrderBy(s => s.Top))
+            foreach (var r in _state.Data.GetSampleRows(well.Id))
             {
                 if (!r.SampleTypeCode.HasValue)
                     r.SampleTypeCode = InferSampleTypeCode(r.SampleNumber, well.Number);
@@ -203,21 +206,9 @@ public partial class SamplesViewModel : ObservableObject
             return;
         }
 
-        using var db = new AppDbContext();
         try
         {
-            var existingById = db.SampleRows.Where(s => s.WellId == well.Id).ToDictionary(s => s.Id);
-            var keep = Rows.Where(r => r.Id != 0).Select(r => r.Id).ToHashSet();
-            foreach (var g in existingById.Values.Where(e => !keep.Contains(e.Id))) db.SampleRows.Remove(g);
-            foreach (var r in Rows)
-            {
-                r.WellId = well.Id;
-                r.SampleNumber = r.SampleNumber.Trim();
-                if (r.Id == 0) db.SampleRows.Add(r);
-                else if (existingById.TryGetValue(r.Id, out var tracked)) db.Entry(tracked).CurrentValues.SetValues(r);
-                else db.SampleRows.Update(r);
-            }
-            db.SaveChanges();
+            _state.Data.SaveSamples(well.Id, Rows.ToList());
         }
         catch (Exception ex)
         {
@@ -225,8 +216,7 @@ public partial class SamplesViewModel : ObservableObject
             return;
         }
 
-        foreach (var r in Rows) UnsubscribeRow(r);
-        foreach (var r in Rows) SubscribeRow(r);
+        Load();
         HasUnsaved = false;
         Recalc();
         _state.RaiseDataChanged();

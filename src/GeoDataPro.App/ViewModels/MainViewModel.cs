@@ -1,11 +1,15 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
 using GeoDataPro.App.Services;
+using GeoDataPro.Core.Security;
+using GeoDataPro.Core.Services;
 using Microsoft.Win32;
 
 namespace GeoDataPro.App.ViewModels;
@@ -24,6 +28,9 @@ public partial class MainViewModel : ObservableObject
     public ReferenceViewModel ColorRef { get; } = new(ReferenceViewModel.Kind.Color);
     public ReferenceViewModel TextureRef { get; } = new(ReferenceViewModel.Kind.Texture);
     public ReferenceViewModel MineralRef { get; } = new(ReferenceViewModel.Kind.Mineral);
+    public ReferenceViewModel FloraFaunaRef { get; } = new(ReferenceViewModel.Kind.FloraFauna);
+    public ReferenceViewModel IronHydroxideRef { get; } = new(ReferenceViewModel.Kind.IronHydroxide);
+    public ReferenceViewModel ClasticMaterialRef { get; } = new(ReferenceViewModel.Kind.ClasticMaterial);
     public ReferenceViewModel DescriptionRef { get; } = new(ReferenceViewModel.Kind.Description);
 
     [ObservableProperty]
@@ -39,6 +46,9 @@ public partial class MainViewModel : ObservableObject
         "colors" => "Kern ranglari",
         "textures" => "Teksturalar",
         "minerals" => "Mineralizatsiya",
+        "florafauna" => "Flora-Fauna",
+        "ironhydroxide" => "Gidrookisleniya",
+        "clasticmaterial" => "Mineral tarkibi",
         "descriptions" => "Tavsif shablonlari",
         "wells" => "Loyiha va quduq boshqaruvi",
         "io" => "Import / Eksport",
@@ -47,8 +57,24 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _statusText = "Barcha o'zgarishlar saqlangan";
     [ObservableProperty] private string _clock = DateTime.Now.ToString("HH:mm:ss");
 
-    public string DbLabel => "Baza: Lokal";
-    public string Version => "v1.0.0";
+    public string DbLabel => "Baza: Himoyalangan lokal";
+    public string Version => "v" + AppInfo.Version;
+
+    public string UserLabel
+    {
+        get
+        {
+            var principal = State.Principal;
+            return principal == null ? string.Empty : principal.DisplayName + " · " + principal.Role;
+        }
+    }
+
+    public bool CanImport => State.Can(Permissions.Import);
+    public bool CanExport => State.Can(Permissions.Export);
+    public bool CanBackup => State.Can(Permissions.Backup);
+    public bool CanEditReferences => State.Can(Permissions.ReferenceWrite);
+    public bool CanManageUsers => State.Can(Permissions.UserManage);
+    public bool CanReadAudit => State.Can(Permissions.AuditRead);
 
     public MainViewModel()
     {
@@ -71,6 +97,9 @@ public partial class MainViewModel : ObservableObject
         SubscribeUnsaved(ColorRef, nameof(ReferenceViewModel.HasUnsaved));
         SubscribeUnsaved(TextureRef, nameof(ReferenceViewModel.HasUnsaved));
         SubscribeUnsaved(MineralRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(FloraFaunaRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(IronHydroxideRef, nameof(ReferenceViewModel.HasUnsaved));
+        SubscribeUnsaved(ClasticMaterialRef, nameof(ReferenceViewModel.HasUnsaved));
         SubscribeUnsaved(DescriptionRef, nameof(ReferenceViewModel.HasUnsaved));
     }
 
@@ -88,7 +117,9 @@ public partial class MainViewModel : ObservableObject
         bool anyUnsaved = Journal.HasUnsaved || Samples.HasUnsaved || Srp.HasUnsaved
                           || Wells.HasUnsaved
                           || LithoRef.HasUnsaved || ColorRef.HasUnsaved || TextureRef.HasUnsaved
-                          || MineralRef.HasUnsaved || DescriptionRef.HasUnsaved;
+                          || MineralRef.HasUnsaved || FloraFaunaRef.HasUnsaved
+                          || IronHydroxideRef.HasUnsaved || ClasticMaterialRef.HasUnsaved
+                          || DescriptionRef.HasUnsaved;
         StatusText = anyUnsaved ? "Saqlanmagan o'zgarishlar bor" : "Barcha o'zgarishlar saqlangan";
     }
 
@@ -103,12 +134,11 @@ public partial class MainViewModel : ObservableObject
         if (project == null) { Warn("Avval loyiha tanlang."); return; }
         var name = Views.PromptDialog.Ask("Yangi quduq nomi:", "Quduq qo'shish", "0000");
         if (string.IsNullOrWhiteSpace(name)) return;
-        using var db = new AppDbContext();
-        var well = new Well { ProjectId = project.Id, Number = name.Trim() };
+
+        Well well;
         try
         {
-            db.Wells.Add(well);
-            db.SaveChanges();
+            well = State.Data.CreateWell(project.Id, name);
         }
         catch (Exception ex)
         {
@@ -128,37 +158,38 @@ public partial class MainViewModel : ObservableObject
     /// - Excel dagi Well Name bo'yicha quduq topilmasa — avtomatik yaratiladi.
     /// </summary>
     [RelayCommand]
-    void ImportExcel()
+    async Task ImportExcelAsync()
     {
-        var dlg = new OpenFileDialog { Filter = "Excel (*.xlsx)|*.xlsx", Title = "Excel import (barcha quduqlar)" };
+        if (!CanImport) { Warn("Bu amal uchun ruxsatingiz yo'q."); return; }
+
+        var dlg = new OpenFileDialog
+        {
+            Filter = "Excel (*.xlsx)|*.xlsx",
+            Title = "Excel import",
+            CheckFileExists = true,
+            Multiselect = false,
+            DereferenceLinks = true,
+        };
         if (dlg.ShowDialog() != true) return;
 
-        // Loyiha tanlash / yangi yaratish
         var projectChoice = AskProjectForImport();
-        if (projectChoice == null) return; // bekor qilindi
+        if (projectChoice == null) return;
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
         try
         {
-            ExcelService.ImportResult result;
-            if (projectChoice.Value.createNew)
-            {
-                result = ExcelService.ImportWorkbookToProject(
-                    dlg.FileName,
-                    projectId: null,
-                    newProjectName: projectChoice.Value.name);
-            }
-            else
-            {
-                result = ExcelService.ImportWorkbook(dlg.FileName, projectChoice.Value.projectId);
-            }
+            var result = projectChoice.Value.createNew
+                ? await State.Host.Transfer.ImportAsync(dlg.FileName, null, projectChoice.Value.name, cts.Token)
+                : await State.Host.Transfer.ImportAsync(dlg.FileName, projectChoice.Value.projectId, null, cts.Token);
 
-            // Holatni yangilash — yangi/yangilangan loyihani topamiz
             State.Reload();
             var targetProject = State.Projects.FirstOrDefault(p =>
                 string.Equals(p.Name, result.ProjectName, StringComparison.OrdinalIgnoreCase));
             if (targetProject != null)
                 State.Reload(targetProject.Id);
 
+            RefCache.Instance.Reload();
             Wells.Load();
             Journal.Load();
             Samples.Load();
@@ -173,17 +204,17 @@ public partial class MainViewModel : ObservableObject
                 $"  Loyiha: {result.ProjectName}\n" +
                 $"  Quduqlar: {result.WellNumbers.Count} ta " +
                 $"(yangi: {result.WellsCreated}, mavjud: {result.WellsUpdated})\n" +
-                $"  → {wellsList}\n\n" +
+                $"  \u2192 {wellsList}\n\n" +
                 $"  Dala jurnali: {result.JournalRows} qator\n" +
                 $"  Namuna: {result.SampleRows} qator\n" +
                 $"  SRP: {result.SrpRows} nuqta",
-                "GeoData Pro — Import",
+                "GeoData Pro",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
-            AppNotifier.Error("Import xatosi: " + ex.Message, ex);
+            AppNotifier.Error("Importni yakunlab bo'lmadi.", ex);
         }
     }
 
@@ -191,17 +222,18 @@ public partial class MainViewModel : ObservableObject
     /// Excel eksport: joriy loyihadagi BARCHA quduqlar (yoki faqat joriy quduq — tanlov).
     /// </summary>
     [RelayCommand]
-    void ExportExcel()
+    async Task ExportExcelAsync()
     {
+        if (!CanExport) { Warn("Bu amal uchun ruxsatingiz yo'q."); return; }
+
         var project = State.CurrentProject;
         if (project == null) { Warn("Avval loyiha tanlang."); return; }
 
-        // Tanlov: barcha quduqlar yoki faqat joriy
         var choice = MessageBox.Show(
             $"Loyiha: {project.Name}\n\n" +
             "Barcha quduqlarni eksport qilishni xohlaysizmi?\n\n" +
-            "  Ha  — loyihadagi barcha quduqlar\n" +
-            "  Yo'q — faqat joriy tanlangan quduq",
+            "  Ha  \u2014 loyihadagi barcha quduqlar\n" +
+            "  Yo'q \u2014 faqat joriy tanlangan quduq",
             "Eksport rejimi",
             MessageBoxButton.YesNoCancel,
             MessageBoxImage.Question);
@@ -212,44 +244,88 @@ public partial class MainViewModel : ObservableObject
 
         if (!exportAll && State.CurrentWell == null)
         {
-            Warn("Joriy quduq tanlanmagan. Avval quduq tanlang yoki 'Ha' ni bosing.");
+            Warn("Joriy quduq tanlanmagan.");
             return;
         }
 
         var defaultName = exportAll
-            ? $"{project.Name}_barcha_quduqlar.xlsx"
-            : $"{project.Name}_{State.CurrentWell!.Number}.xlsx";
+            ? SafeName(project.Name + "_barcha_quduqlar")
+            : SafeName(project.Name + "_" + State.CurrentWell!.Number);
 
         var dlg = new SaveFileDialog
         {
             Filter = "Excel (*.xlsx)|*.xlsx",
-            FileName = defaultName,
+            FileName = defaultName + ".xlsx",
+            AddExtension = true,
+            DefaultExt = ".xlsx",
+            OverwritePrompt = true,
         };
         if (dlg.ShowDialog() != true) return;
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
         try
         {
             if (exportAll)
-            {
-                ExcelService.ExportWorkbookMulti(dlg.FileName, project.Id);
-            }
+                await State.Host.Transfer.ExportProjectAsync(dlg.FileName, project.Id, null, cts.Token);
             else
-            {
-                ExcelService.ExportWorkbook(dlg.FileName, State.CurrentWell!);
-            }
+                await State.Host.Transfer.ExportWellAsync(dlg.FileName, State.CurrentWell!.Id, cts.Token);
 
-            MessageBox.Show(
-                "Eksport tayyor:\n" + dlg.FileName +
-                (exportAll ? "\n\n(Loyihadagi barcha quduqlar)" : $"\n\n(Faqat: {State.CurrentWell!.Number})"),
-                "GeoData Pro",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            AppNotifier.Info("Eksport tayyor.");
         }
         catch (Exception ex)
         {
-            Warn("Eksport xatosi: " + ex.Message);
+            AppNotifier.Error("Eksportni yakunlab bo'lmadi.", ex);
         }
     }
+
+    [RelayCommand]
+    async Task BackupAsync()
+    {
+        if (!CanBackup) { Warn("Bu amal uchun ruxsatingiz yo'q."); return; }
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(30));
+        try
+        {
+            await State.Host.Backup.CreateAsync(cts.Token);
+            AppNotifier.Info("Zaxira nusxa yaratildi.");
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.Error("Zaxira nusxani yaratib bo'lmadi.", ex);
+        }
+    }
+
+    [RelayCommand]
+    void ChangePassword()
+    {
+        var dialog = new Views.ChangePasswordWindow(State.Host)
+        {
+            Owner = Application.Current?.MainWindow,
+        };
+        dialog.ShowDialog();
+    }
+
+    [RelayCommand]
+    void SignOut()
+    {
+        if (MessageBox.Show("Tizimdan chiqasizmi?", "Tasdiqlash",
+            MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+        try
+        {
+            State.Host.Authentication.LogoutAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            AppNotifier.LogException(ex, "signout");
+        }
+
+        Application.Current?.Shutdown();
+    }
+
+    static string SafeName(string value) =>
+        GeoDataPro.Core.Files.SafeFile.SanitizeFileName(value, "eksport");
 
     /// <summary>
     /// Import uchun loyiha tanlash dialogi.

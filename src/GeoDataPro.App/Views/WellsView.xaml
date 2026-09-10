@@ -8,41 +8,47 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="280" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="360" />
+            <ColumnDefinition x:Name="ProjectsColumn" Width="280" MinWidth="180" MaxWidth="560" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" MinWidth="260" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition x:Name="DetailsColumn" Width="360" MinWidth="260" MaxWidth="720" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,16">
+        <StackPanel Grid.Row="0" Grid.ColumnSpan="5" Orientation="Horizontal" Margin="0,0,0,16">
             <v:StatTile Caption="Jami loyihalar" Value="{Binding ProjectCount}" Unit="ta" />
             <v:StatTile Caption="Jami quduqlar" Value="{Binding WellCount}" Unit="ta" />
             <v:StatTile Caption="Jurnal qatorlari" Value="{Binding TotalJournalCount}" Unit="ta" />
             <v:StatTile Caption="Namunalar" Value="{Binding TotalSampleCount}" Unit="ta" />
         </StackPanel>
 
-        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,16,0" Padding="0">
+        <GridSplitter Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelSplitter}" Margin="3,0" />
+        <GridSplitter Grid.Row="1" Grid.Column="3" Style="{StaticResource PanelSplitter}" Margin="3,0" />
+
+        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,3,0" Padding="0">
             <DockPanel>
                 <Grid DockPanel.Dock="Top" Margin="16,16,16,12">
                     <TextBlock Text="Loyihalar" Style="{StaticResource H2}" VerticalAlignment="Center" />
                     <Button Content="+" Style="{StaticResource IconButton}" HorizontalAlignment="Right"
-                            Command="{Binding AddProjectCommand}" />
+                            Command="{Binding AddProjectCommand}" IsEnabled="{Binding CanCreateProjects}" />
                 </Grid>
                 <ListBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" DisplayMemberPath="Name" />
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,16,0" Padding="0">
+        <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Card}" Margin="3,0" Padding="0">
             <DockPanel>
                 <Grid DockPanel.Dock="Top" Margin="16,16,16,12">
                     <TextBlock Text="Loyiha va quduqlar ro'yxati" Style="{StaticResource H2}" VerticalAlignment="Center" />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="+  Quduq" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"
-                                Command="{Binding AddWellCommand}" />
+                                Command="{Binding AddWellCommand}" IsEnabled="{Binding CanManageProjects}" />
                         <Button Content="O'chirish" Style="{StaticResource GhostButton}"
-                                Command="{Binding DeleteWellCommand}" />
+                                Command="{Binding DeleteWellCommand}" IsEnabled="{Binding CanDeleteWells}" />
                     </StackPanel>
                 </Grid>
-                <DataGrid ItemsSource="{Binding Wells}" SelectedItem="{Binding SelectedWell}" BorderThickness="0" IsReadOnly="True">
+                <DataGrid ItemsSource="{Binding Wells}" SelectedItem="{Binding SelectedWell}" BorderThickness="0" IsReadOnly="True"
+                          HorizontalScrollBarVisibility="Auto" MaxWidth="10000">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Quduq" Binding="{Binding Number}" Width="110" />
                         <DataGridTextColumn Header="Boshlanish" Binding="{Binding StartDepth, StringFormat={}{0:0.#}}" Width="110" />
@@ -55,7 +61,7 @@
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Card}">
+        <Border Grid.Row="1" Grid.Column="4" Style="{StaticResource Card}" Margin="3,0,0,0">
             <StackPanel DataContext="{Binding SelectedWell}">
                 <TextBlock Text="Quduq ma'lumotlari" Style="{StaticResource H2}" Margin="0,0,0,16" />
                 <StackPanel Visibility="{Binding Converter={StaticResource NullToVis}}">
@@ -81,7 +87,8 @@
                     <TextBlock Text="GEOLOG" Style="{StaticResource Caption}" />
                     <TextBox Text="{Binding Geologist, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,18" />
                     <Button Content="Saqlash" Style="{StaticResource PrimaryButton}"
-                            Command="{Binding DataContext.SaveWellCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            Command="{Binding DataContext.SaveWellCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            IsEnabled="{Binding DataContext.CanManageProjects, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                 </StackPanel>
                 <TextBlock Text="Quduq tanlanmagan" Foreground="{StaticResource TextMuted}"
                            Visibility="{Binding Converter={StaticResource NotNullToVis}}" />

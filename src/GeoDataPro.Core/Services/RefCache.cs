@@ -1,42 +1,81 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeoDataPro.App.Data;
+using GeoDataPro.Core.Data;
+using GeoDataPro.Core.Security;
 
-namespace GeoDataPro.App.Services;
+namespace GeoDataPro.Core.Services;
 
-/// <summary>Spravochniklarni bir marta yuklab, ID -> obyekt lug'atlarini beradi.</summary>
 public class RefCache
 {
+    IGeoDataService? _source;
+
+    public void Attach(IGeoDataService source) =>
+        _source = source ?? throw new ArgumentNullException(nameof(source));
+
     public List<LithoCode> Litho { get; private set; } = new();
     public List<ColorCode> Colors { get; private set; } = new();
     public List<TextureCode> Textures { get; private set; } = new();
     public List<MineralCode> Minerals { get; private set; } = new();
+    public List<FloraFaunaCode> FloraFauna { get; private set; } = new();
+    public List<IronHydroxideCode> IronHydroxides { get; private set; } = new();
+    public List<ClasticMaterialCode> ClasticMaterials { get; private set; } = new();
     public List<DescriptionTemplate> Descriptions { get; private set; } = new();
 
     Dictionary<int, LithoCode> _litho = new();
     Dictionary<int, ColorCode> _color = new();
     Dictionary<int, TextureCode> _texture = new();
     Dictionary<int, MineralCode> _mineral = new();
+    Dictionary<int, FloraFaunaCode> _floraFauna = new();
+    Dictionary<int, IronHydroxideCode> _ironHydroxide = new();
+    Dictionary<int, ClasticMaterialCode> _clasticMaterial = new();
 
     public void Reload()
     {
-        using var db = new AppDbContext();
-        Litho = db.LithoCodes.OrderBy(x => x.Code).ToList();
-        Colors = db.ColorCodes.OrderBy(x => x.Code).ToList();
-        Textures = db.TextureCodes.OrderBy(x => x.Code).ToList();
-        Minerals = db.MineralCodes.OrderBy(x => x.Code).ToList();
-        Descriptions = db.DescriptionTemplates.OrderBy(x => x.Text).ToList();
+        if (_source == null) return;
 
-        _litho = Litho.ToDictionary(x => x.Code);
-        _color = Colors.ToDictionary(x => x.Code);
-        _texture = Textures.ToDictionary(x => x.Code);
-        _mineral = Minerals.ToDictionary(x => x.Code);
+        ReferenceSnapshot snapshot;
+        try
+        {
+            snapshot = _source.GetReferences();
+        }
+        catch (SecurityDeniedException)
+        {
+            return;
+        }
+
+        Litho = snapshot.Litho.ToList();
+        Colors = snapshot.Colors.ToList();
+        Textures = snapshot.Textures.ToList();
+        Minerals = snapshot.Minerals.ToList();
+        FloraFauna = snapshot.FloraFauna.ToList();
+        IronHydroxides = snapshot.IronHydroxides.ToList();
+        ClasticMaterials = snapshot.ClasticMaterials.ToList();
+        Descriptions = snapshot.Descriptions.ToList();
+
+        _litho = Distinct(Litho, x => x.Code);
+        _color = Distinct(Colors, x => x.Code);
+        _texture = Distinct(Textures, x => x.Code);
+        _mineral = Distinct(Minerals, x => x.Code);
+        _floraFauna = Distinct(FloraFauna, x => x.Code);
+        _ironHydroxide = Distinct(IronHydroxides, x => x.Code);
+        _clasticMaterial = Distinct(ClasticMaterials, x => x.Code);
+    }
+
+    static Dictionary<int, T> Distinct<T>(IEnumerable<T> items, Func<T, int> key)
+    {
+        var map = new Dictionary<int, T>();
+        foreach (var item in items) map[key(item)] = item;
+        return map;
     }
 
     public LithoCode? Litho4(int? code) => code is int c && _litho.TryGetValue(c, out var v) ? v : null;
     public ColorCode? Color4(int? code) => code is int c && _color.TryGetValue(c, out var v) ? v : null;
     public TextureCode? Texture4(int? code) => code is int c && _texture.TryGetValue(c, out var v) ? v : null;
     public MineralCode? Mineral4(int? code) => code is int c && _mineral.TryGetValue(c, out var v) ? v : null;
+    public FloraFaunaCode? FloraFauna4(int? code) => code is int c && _floraFauna.TryGetValue(c, out var v) ? v : null;
+    public IronHydroxideCode? IronHydroxide4(int? code) => code is int c && _ironHydroxide.TryGetValue(c, out var v) ? v : null;
+    public ClasticMaterialCode? ClasticMaterial4(int? code) => code is int c && _clasticMaterial.TryGetValue(c, out var v) ? v : null;
 
     /// <summary>
     /// Litho/rang/tekstura/mineral/donadorlik kombinatsiyasiga eng mos shablonni topadi.

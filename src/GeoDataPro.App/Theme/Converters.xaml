@@ -14,5 +14,8 @@
     <inf:IntToVisibilityConverter x:Key="IntToVis" />
     <inf:PercentageBadgeBrushConverter x:Key="PercentageBadgeBrush" />
     <inf:PercentageBadgeTextBrushConverter x:Key="PercentageBadgeTextBrush" />
+    <inf:EditableNumberConverter x:Key="Num1" Format="0.0" />
+    <inf:EditableNumberConverter x:Key="Num2" Format="0.00" />
+    <inf:EditableNumberConverter x:Key="Num3" Format="0.###" />
 
 </ResourceDictionary>
