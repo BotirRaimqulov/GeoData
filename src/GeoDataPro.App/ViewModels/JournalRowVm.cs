@@ -36,6 +36,9 @@ public partial class JournalRowVm : ObservableObject
         _zoneName = model.ZoneName;
         _lithoCode = model.LithoCode;
         _colorCode = model.ColorCode;
+        _ironHydroxideCode = model.IronHydroxideCode;
+        _composition = model.Composition;
+        _clasticMaterialCode = model.ClasticMaterialCode;
         _textureCode = model.TextureCode;
         _grainSize = model.GrainSize;
         _hardness = model.Hardness;
@@ -89,6 +92,9 @@ public partial class JournalRowVm : ObservableObject
     [ObservableProperty] private string? _zoneName;
     [ObservableProperty] private int? _lithoCode;
     [ObservableProperty] private int? _colorCode;
+    [ObservableProperty] private int? _ironHydroxideCode;
+    [ObservableProperty] private string? _composition;
+    [ObservableProperty] private int? _clasticMaterialCode;
     [ObservableProperty] private int? _textureCode;
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     [ObservableProperty] private string? _grainSize;
@@ -167,6 +173,9 @@ public partial class JournalRowVm : ObservableObject
     }
     partial void OnLithoCodeChanged(int? value) { Model.LithoCode = value; Touch(); OnPropertyChanged(nameof(LithoDisplay)); OnPropertyChanged(nameof(LithoPattern)); AutoFillDescription(); }
     partial void OnColorCodeChanged(int? value) { Model.ColorCode = value; Touch(); OnPropertyChanged(nameof(ColorDisplay)); OnPropertyChanged(nameof(ColorHex)); AutoFillDescription(); }
+    partial void OnIronHydroxideCodeChanged(int? value) { Model.IronHydroxideCode = value; Touch(); OnPropertyChanged(nameof(IronHydroxideDisplay)); AutoFillDescription(); }
+    partial void OnCompositionChanged(string? value) { Model.Composition = value; Touch(); AutoFillDescription(); }
+    partial void OnClasticMaterialCodeChanged(int? value) { Model.ClasticMaterialCode = value; Touch(); OnPropertyChanged(nameof(ClasticMaterialDisplay)); AutoFillDescription(); }
     partial void OnTextureCodeChanged(int? value) { Model.TextureCode = value; Touch(); OnPropertyChanged(nameof(TextureDisplay)); AutoFillDescription(); }
     partial void OnGrainSizeChanged(string? value) { Model.GrainSize = value; Touch(); AutoFillDescription(); }
     partial void OnHardnessChanged(string? value) { Model.Hardness = value; Touch(); AutoFillDescription(); }
@@ -340,4 +349,6 @@ public partial class JournalRowVm : ObservableObject
     public string TextureDisplay => RefCache.Instance.Texture4(TextureCode)?.Name ?? "";
     public string MineralDisplay => RefCache.Instance.Mineral4(MineralCode)?.Name ?? "";
     public string FloraFaunaDisplay => RefCache.Instance.FloraFauna4(FloraFaunaCode)?.Name ?? "";
+    public string IronHydroxideDisplay => RefCache.Instance.IronHydroxide4(IronHydroxideCode)?.Name ?? "";
+    public string ClasticMaterialDisplay => RefCache.Instance.ClasticMaterial4(ClasticMaterialCode)?.Name ?? "";
 }

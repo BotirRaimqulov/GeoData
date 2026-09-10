@@ -76,6 +76,14 @@
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=florafauna}"
                                      Command="{Binding NavigateCommand}" CommandParameter="florafauna"
                                      Visibility="Collapsed" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="⬤" Content="Gidrookisleniya"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=ironhydroxide}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="ironhydroxide"
+                                     Visibility="Collapsed" />
+                        <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="◈" Content="Mineral tarkibi"
+                                     IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=clasticmaterial}"
+                                     Command="{Binding NavigateCommand}" CommandParameter="clasticmaterial"
+                                     Visibility="Collapsed" />
                         <RadioButton Style="{StaticResource NavItem}" GroupName="nav" Tag="✎" Content="Tavsif shablonlari"
                                      IsChecked="{Binding CurrentSection, Converter={StaticResource SecEq}, ConverterParameter=descriptions}"
                                      Command="{Binding NavigateCommand}" CommandParameter="descriptions"
@@ -137,6 +145,8 @@
                 <v:ReferenceView DataContext="{Binding TextureRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=textures}" />
                 <v:ReferenceView DataContext="{Binding MineralRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=minerals}" />
                 <v:ReferenceView DataContext="{Binding FloraFaunaRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=florafauna}" />
+                <v:ReferenceView DataContext="{Binding IronHydroxideRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=ironhydroxide}" />
+                <v:ReferenceView DataContext="{Binding ClasticMaterialRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=clasticmaterial}" />
                 <v:ReferenceView DataContext="{Binding DescriptionRef}" Visibility="{Binding DataContext.CurrentSection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource SecVis}, ConverterParameter=descriptions}" />
                 <v:WellsView     Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=wells}" />
                 <v:IoView        Visibility="{Binding CurrentSection, Converter={StaticResource SecVis}, ConverterParameter=io}" />

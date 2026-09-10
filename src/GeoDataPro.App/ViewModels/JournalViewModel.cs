@@ -173,7 +173,9 @@ public partial class JournalViewModel : ObservableObject
         {
             Top = s.Bottom, Bottom = Math.Round(s.Bottom + s.Interval, 2),
             CoreRecoveryM = s.CoreRecoveryM, ZoneName = s.ZoneName,
-            LithoCode = s.LithoCode, ColorCode = s.ColorCode, TextureCode = s.TextureCode,
+            LithoCode = s.LithoCode, ColorCode = s.ColorCode,
+            IronHydroxideCode = s.IronHydroxideCode, Composition = s.Composition,
+            ClasticMaterialCode = s.ClasticMaterialCode, TextureCode = s.TextureCode,
             GrainSize = s.GrainSize, Hardness = s.Hardness, Cementation = s.Cementation,
             MineralCode = s.MineralCode, FloraFaunaCode = s.FloraFaunaCode,
             Description = s.Description,

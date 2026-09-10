@@ -148,13 +148,16 @@ public partial class JournalView : UserControl
         var texture = rc.Textures.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
         var mineral = rc.Minerals.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
         var floraFauna = rc.FloraFauna.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
+        var ironHydroxide = rc.IronHydroxides.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
+        var clasticMaterial = rc.ClasticMaterials.FirstOrDefault(x => Matches(x.Name) || Matches(x.NameRu));
         var grain = JournalRowVm.GrainSizes.FirstOrDefault(g => string.Equals(g, word, StringComparison.OrdinalIgnoreCase));
         var hardness = JournalRowVm.Hardnesses.FirstOrDefault(g => string.Equals(g, word, StringComparison.OrdinalIgnoreCase));
         var cementation = JournalRowVm.Cementations.FirstOrDefault(g => string.Equals(g, word, StringComparison.OrdinalIgnoreCase));
 
         int hits = (litho != null ? 1 : 0) + (color != null ? 1 : 0) + (texture != null ? 1 : 0)
-                 + (mineral != null ? 1 : 0) + (floraFauna != null ? 1 : 0) + (grain != null ? 1 : 0)
-                 + (hardness != null ? 1 : 0) + (cementation != null ? 1 : 0);
+                 + (mineral != null ? 1 : 0) + (floraFauna != null ? 1 : 0)
+                 + (ironHydroxide != null ? 1 : 0) + (clasticMaterial != null ? 1 : 0)
+                 + (grain != null ? 1 : 0) + (hardness != null ? 1 : 0) + (cementation != null ? 1 : 0);
 
         if (hits == 1)
         {
@@ -191,6 +194,20 @@ public partial class JournalView : UserControl
                 category = "Flora-Fauna";
                 options = rc.FloraFauna.Where(x => x.Code != floraFauna.Code).Select(x => ((object?)x.Code, x.Name)).ToList();
                 apply = v => row.FloraFaunaCode = (int?)v;
+                return true;
+            }
+            if (ironHydroxide != null)
+            {
+                category = "Gidrookisleniya";
+                options = rc.IronHydroxides.Where(x => x.Code != ironHydroxide.Code).Select(x => ((object?)x.Code, x.Name)).ToList();
+                apply = v => row.IronHydroxideCode = (int?)v;
+                return true;
+            }
+            if (clasticMaterial != null)
+            {
+                category = "Mineral tarkibi";
+                options = rc.ClasticMaterials.Where(x => x.Code != clasticMaterial.Code).Select(x => ((object?)x.Code, x.Name)).ToList();
+                apply = v => row.ClasticMaterialCode = (int?)v;
                 return true;
             }
             if (hardness != null)

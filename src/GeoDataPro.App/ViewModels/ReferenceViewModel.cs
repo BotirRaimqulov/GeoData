@@ -14,7 +14,7 @@ namespace GeoDataPro.App.ViewModels;
 /// <summary>Litologik kodlar / ranglar / teksturalar / minerallar spravochnigi tahrirlagichi.</summary>
 public partial class ReferenceViewModel : ObservableObject
 {
-    public enum Kind { Litho, Color, Texture, Mineral, FloraFauna, Description }
+    public enum Kind { Litho, Color, Texture, Mineral, FloraFauna, IronHydroxide, ClasticMaterial, Description }
     public Kind CurrentKind { get; }
 
     public ObservableCollection<LithoCode> Litho { get; } = new();
@@ -22,6 +22,8 @@ public partial class ReferenceViewModel : ObservableObject
     public ObservableCollection<TextureCode> Textures { get; } = new();
     public ObservableCollection<MineralCode> Minerals { get; } = new();
     public ObservableCollection<FloraFaunaCode> FloraFauna { get; } = new();
+    public ObservableCollection<IronHydroxideCode> IronHydroxides { get; } = new();
+    public ObservableCollection<ClasticMaterialCode> ClasticMaterials { get; } = new();
     public ObservableCollection<DescriptionTemplate> Descriptions { get; } = new();
 
     /// <summary>Jadvalda ko'p tanlangan qatorlar (Ctrl+Click / Shift+Click orqali).</summary>
@@ -44,6 +46,8 @@ public partial class ReferenceViewModel : ObservableObject
             Kind.Texture => "Teksturalar",
             Kind.Mineral => "Mineralizatsiya",
             Kind.FloraFauna => "Flora-Fauna",
+            Kind.IronHydroxide => "Gidrookisleniya",
+            Kind.ClasticMaterial => "Mineral tarkibi",
             _ => "Tavsif shablonlari",
         };
         Litho.CollectionChanged += Collection_Changed;
@@ -51,6 +55,8 @@ public partial class ReferenceViewModel : ObservableObject
         Textures.CollectionChanged += Collection_Changed;
         Minerals.CollectionChanged += Collection_Changed;
         FloraFauna.CollectionChanged += Collection_Changed;
+        IronHydroxides.CollectionChanged += Collection_Changed;
+        ClasticMaterials.CollectionChanged += Collection_Changed;
         Descriptions.CollectionChanged += Collection_Changed;
         Load();
     }
@@ -64,7 +70,8 @@ public partial class ReferenceViewModel : ObservableObject
     public void Load()
     {
         using var db = new AppDbContext();
-        Litho.Clear(); Colors.Clear(); Textures.Clear(); Minerals.Clear(); FloraFauna.Clear(); Descriptions.Clear();
+        Litho.Clear(); Colors.Clear(); Textures.Clear(); Minerals.Clear(); FloraFauna.Clear();
+        IronHydroxides.Clear(); ClasticMaterials.Clear(); Descriptions.Clear();
         HasUnsaved = false;
         switch (CurrentKind)
         {
@@ -73,6 +80,8 @@ public partial class ReferenceViewModel : ObservableObject
             case Kind.Texture: foreach (var x in db.TextureCodes.AsNoTracking().OrderBy(x => x.Code)) Textures.Add(x); break;
             case Kind.Mineral: foreach (var x in db.MineralCodes.AsNoTracking().OrderBy(x => x.Code)) Minerals.Add(x); break;
             case Kind.FloraFauna: foreach (var x in db.FloraFaunaCodes.AsNoTracking().OrderBy(x => x.Code)) FloraFauna.Add(x); break;
+            case Kind.IronHydroxide: foreach (var x in db.IronHydroxideCodes.AsNoTracking().OrderBy(x => x.Code)) IronHydroxides.Add(x); break;
+            case Kind.ClasticMaterial: foreach (var x in db.ClasticMaterialCodes.AsNoTracking().OrderBy(x => x.Code)) ClasticMaterials.Add(x); break;
             case Kind.Description: foreach (var x in db.DescriptionTemplates.AsNoTracking().OrderBy(x => x.Text)) Descriptions.Add(x); break;
         }
         // Add paytida HasUnsaved true bo'lib qoladi — load holatida uni tozalaymiz.
@@ -94,6 +103,10 @@ public partial class ReferenceViewModel : ObservableObject
                 Minerals.Add(new MineralCode { Code = (Minerals.Count == 0 ? 1 : Minerals.Max(x => x.Code) + 1), Name = "Yangi" }); break;
             case Kind.FloraFauna:
                 FloraFauna.Add(new FloraFaunaCode { Code = (FloraFauna.Count == 0 ? 1 : FloraFauna.Max(x => x.Code) + 1), Name = "Yangi" }); break;
+            case Kind.IronHydroxide:
+                IronHydroxides.Add(new IronHydroxideCode { Code = (IronHydroxides.Count == 0 ? 1 : IronHydroxides.Max(x => x.Code) + 1), Name = "Yangi" }); break;
+            case Kind.ClasticMaterial:
+                ClasticMaterials.Add(new ClasticMaterialCode { Code = (ClasticMaterials.Count == 0 ? 1 : ClasticMaterials.Max(x => x.Code) + 1), Name = "Yangi" }); break;
             case Kind.Description:
                 Descriptions.Add(new DescriptionTemplate { Text = "Yangi tavsif" }); break;
         }
@@ -126,6 +139,8 @@ public partial class ReferenceViewModel : ObservableObject
                 case TextureCode t: Textures.Remove(t); break;
                 case MineralCode m: Minerals.Remove(m); break;
                 case FloraFaunaCode f: FloraFauna.Remove(f); break;
+                case IronHydroxideCode ih: IronHydroxides.Remove(ih); break;
+                case ClasticMaterialCode cm: ClasticMaterials.Remove(cm); break;
                 case DescriptionTemplate d: Descriptions.Remove(d); break;
             }
         }
@@ -150,6 +165,8 @@ public partial class ReferenceViewModel : ObservableObject
                 case Kind.Texture: Sync(db, db.TextureCodes, Textures, x => x.Id); break;
                 case Kind.Mineral: Sync(db, db.MineralCodes, Minerals, x => x.Id); break;
                 case Kind.FloraFauna: Sync(db, db.FloraFaunaCodes, FloraFauna, x => x.Id); break;
+                case Kind.IronHydroxide: Sync(db, db.IronHydroxideCodes, IronHydroxides, x => x.Id); break;
+                case Kind.ClasticMaterial: Sync(db, db.ClasticMaterialCodes, ClasticMaterials, x => x.Id); break;
                 case Kind.Description: Sync(db, db.DescriptionTemplates, Descriptions, x => x.Id); break;
             }
             db.SaveChanges();
@@ -199,6 +216,10 @@ public partial class ReferenceViewModel : ObservableObject
                 return ValidateCodes(Minerals.Select(x => (x.Code, x.Name)), "mineral kodi", out message);
             case Kind.FloraFauna:
                 return ValidateCodes(FloraFauna.Select(x => (x.Code, x.Name)), "flora-fauna kodi", out message);
+            case Kind.IronHydroxide:
+                return ValidateCodes(IronHydroxides.Select(x => (x.Code, x.Name)), "gidrookisleniya kodi", out message);
+            case Kind.ClasticMaterial:
+                return ValidateCodes(ClasticMaterials.Select(x => (x.Code, x.Name)), "mineral tarkibi kodi", out message);
             case Kind.Description:
                 if (Descriptions.Any(x => string.IsNullOrWhiteSpace(x.Text)))
                 {

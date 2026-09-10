@@ -14,6 +14,8 @@ public class AppDbContext : DbContext
     public DbSet<TextureCode> TextureCodes => Set<TextureCode>();
     public DbSet<MineralCode> MineralCodes => Set<MineralCode>();
     public DbSet<FloraFaunaCode> FloraFaunaCodes => Set<FloraFaunaCode>();
+    public DbSet<IronHydroxideCode> IronHydroxideCodes => Set<IronHydroxideCode>();
+    public DbSet<ClasticMaterialCode> ClasticMaterialCodes => Set<ClasticMaterialCode>();
     public DbSet<DescriptionTemplate> DescriptionTemplates => Set<DescriptionTemplate>();
     public DbSet<JournalRow> JournalRows => Set<JournalRow>();
     public DbSet<SampleRow> SampleRows => Set<SampleRow>();
@@ -44,6 +46,8 @@ public class AppDbContext : DbContext
         b.Entity<TextureCode>().HasIndex(x => x.Code).IsUnique();
         b.Entity<MineralCode>().HasIndex(x => x.Code).IsUnique();
         b.Entity<FloraFaunaCode>().HasIndex(x => x.Code).IsUnique();
+        b.Entity<IronHydroxideCode>().HasIndex(x => x.Code).IsUnique();
+        b.Entity<ClasticMaterialCode>().HasIndex(x => x.Code).IsUnique();
     }
 
     /// <summary>Bazani yaratadi va spravochniklarni seed qiladi.</summary>
@@ -106,6 +110,24 @@ public class AppDbContext : DbContext
             "\"PatternKey\" TEXT NULL)",
             "CREATE UNIQUE INDEX \"IX_FloraFaunaCodes_Code\" ON \"FloraFaunaCodes\" (\"Code\")");
 
+        EnsureTable("IronHydroxideCodes",
+            "CREATE TABLE \"IronHydroxideCodes\" (" +
+            "\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_IronHydroxideCodes\" PRIMARY KEY AUTOINCREMENT, " +
+            "\"Code\" INTEGER NOT NULL, " +
+            "\"Name\" TEXT NOT NULL, " +
+            "\"NameRu\" TEXT NULL, " +
+            "\"PatternKey\" TEXT NULL)",
+            "CREATE UNIQUE INDEX \"IX_IronHydroxideCodes_Code\" ON \"IronHydroxideCodes\" (\"Code\")");
+
+        EnsureTable("ClasticMaterialCodes",
+            "CREATE TABLE \"ClasticMaterialCodes\" (" +
+            "\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_ClasticMaterialCodes\" PRIMARY KEY AUTOINCREMENT, " +
+            "\"Code\" INTEGER NOT NULL, " +
+            "\"Name\" TEXT NOT NULL, " +
+            "\"NameRu\" TEXT NULL, " +
+            "\"PatternKey\" TEXT NULL)",
+            "CREATE UNIQUE INDEX \"IX_ClasticMaterialCodes_Code\" ON \"ClasticMaterialCodes\" (\"Code\")");
+
         AddColumn("LithoCodes", "NameRu", "TEXT NULL");
         AddColumn("ColorCodes", "NameRu", "TEXT NULL");
         AddColumn("TextureCodes", "NameRu", "TEXT NULL");
@@ -116,6 +138,9 @@ public class AppDbContext : DbContext
         AddColumn("JournalRows", "Hardness", "TEXT NULL");
         AddColumn("JournalRows", "Cementation", "TEXT NULL");
         AddColumn("JournalRows", "FloraFaunaCode", "INTEGER NULL");
+        AddColumn("JournalRows", "IronHydroxideCode", "INTEGER NULL");
+        AddColumn("JournalRows", "Composition", "TEXT NULL");
+        AddColumn("JournalRows", "ClasticMaterialCode", "INTEGER NULL");
         RemoveColumn("JournalRows", "CarbonateCo2");
         AddColumn("DescriptionTemplates", "LithoCode", "INTEGER NULL");
         AddColumn("DescriptionTemplates", "ColorCode", "INTEGER NULL");

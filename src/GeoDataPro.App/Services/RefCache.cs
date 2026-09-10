@@ -12,6 +12,8 @@ public class RefCache
     public List<TextureCode> Textures { get; private set; } = new();
     public List<MineralCode> Minerals { get; private set; } = new();
     public List<FloraFaunaCode> FloraFauna { get; private set; } = new();
+    public List<IronHydroxideCode> IronHydroxides { get; private set; } = new();
+    public List<ClasticMaterialCode> ClasticMaterials { get; private set; } = new();
     public List<DescriptionTemplate> Descriptions { get; private set; } = new();
 
     Dictionary<int, LithoCode> _litho = new();
@@ -19,6 +21,8 @@ public class RefCache
     Dictionary<int, TextureCode> _texture = new();
     Dictionary<int, MineralCode> _mineral = new();
     Dictionary<int, FloraFaunaCode> _floraFauna = new();
+    Dictionary<int, IronHydroxideCode> _ironHydroxide = new();
+    Dictionary<int, ClasticMaterialCode> _clasticMaterial = new();
 
     public void Reload()
     {
@@ -28,6 +32,8 @@ public class RefCache
         Textures = db.TextureCodes.OrderBy(x => x.Code).ToList();
         Minerals = db.MineralCodes.OrderBy(x => x.Code).ToList();
         FloraFauna = db.FloraFaunaCodes.OrderBy(x => x.Code).ToList();
+        IronHydroxides = db.IronHydroxideCodes.OrderBy(x => x.Code).ToList();
+        ClasticMaterials = db.ClasticMaterialCodes.OrderBy(x => x.Code).ToList();
         Descriptions = db.DescriptionTemplates.OrderBy(x => x.Text).ToList();
 
         _litho = Litho.ToDictionary(x => x.Code);
@@ -35,6 +41,8 @@ public class RefCache
         _texture = Textures.ToDictionary(x => x.Code);
         _mineral = Minerals.ToDictionary(x => x.Code);
         _floraFauna = FloraFauna.ToDictionary(x => x.Code);
+        _ironHydroxide = IronHydroxides.ToDictionary(x => x.Code);
+        _clasticMaterial = ClasticMaterials.ToDictionary(x => x.Code);
     }
 
     public LithoCode? Litho4(int? code) => code is int c && _litho.TryGetValue(c, out var v) ? v : null;
@@ -42,6 +50,8 @@ public class RefCache
     public TextureCode? Texture4(int? code) => code is int c && _texture.TryGetValue(c, out var v) ? v : null;
     public MineralCode? Mineral4(int? code) => code is int c && _mineral.TryGetValue(c, out var v) ? v : null;
     public FloraFaunaCode? FloraFauna4(int? code) => code is int c && _floraFauna.TryGetValue(c, out var v) ? v : null;
+    public IronHydroxideCode? IronHydroxide4(int? code) => code is int c && _ironHydroxide.TryGetValue(c, out var v) ? v : null;
+    public ClasticMaterialCode? ClasticMaterial4(int? code) => code is int c && _clasticMaterial.TryGetValue(c, out var v) ? v : null;
 
     /// <summary>
     /// Litho/rang/tekstura/mineral/donadorlik kombinatsiyasiga eng mos shablonni topadi.

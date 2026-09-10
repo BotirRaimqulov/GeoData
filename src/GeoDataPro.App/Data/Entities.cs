@@ -100,6 +100,26 @@ public class FloraFaunaCode
     public string? PatternKey { get; set; }
 }
 
+/// <summary>Temir gidrooksidlari va oksidlanish belgilari spravochnigi.</summary>
+public class IronHydroxideCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    public string Name { get; set; } = "";
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
+/// <summary>Mineral tarkibi (obломочный материал): kvars, dala shpatlari va h.k.</summary>
+public class ClasticMaterialCode
+{
+    public int Id { get; set; }
+    public int Code { get; set; }
+    public string Name { get; set; } = "";
+    public string? NameRu { get; set; }
+    public string? PatternKey { get; set; }
+}
+
 /// <summary>
 /// Tasnif / description shabloni. Litho/rang/tekstura/mineral/donadorlik maydonlari
 /// ixtiyoriy — to'ldirilgan maydon shu qiymatga mos bo'lishi shart, bo'sh maydon esa
@@ -132,12 +152,17 @@ public class JournalRow
     public double CoreRecoveryM { get; set; }
     public string? ZoneName { get; set; }
 
-    // Quyidagi maydonlar tartibi (Litologiya, Rangi, Tarkibi, Donadorligi, Qattiqligi,
-    // Sementlashuvi, Mineralizatsiya, Flora-Fauna) Dala jurnali jadvalidagi ustunlar
-    // ketma-ketligiga va shu ustunlardan hosil bo'ladigan select-option ro'yxatlariga mos.
+    // Ustunlar tartibi: Litologiya, Rangi, Gidrookisleniya, Tarkibi, Mineral tarkibi,
+    // Tekstura, Donadorligi, Qattiqligi, Sementlashuvi, Mineralizatsiya, Flora-Fauna.
     public int? LithoCode { get; set; }
     public int? ColorCode { get; set; }
-    /// <summary>Tarkibi (tekstura spravochnigi).</summary>
+    /// <summary>Gidrookisleniya — temir gidrooksidlari spravochnigi.</summary>
+    public int? IronHydroxideCode { get; set; }
+    /// <summary>Tarkibi — erkin matn (masalan "qumloq-gilloq", "karbonatli").</summary>
+    public string? Composition { get; set; }
+    /// <summary>Mineral tarkibi (obломочный материал): kvars, dala shpatlari va h.k.</summary>
+    public int? ClasticMaterialCode { get; set; }
+    /// <summary>Tekstura (tekstura spravochnigi — Gorizontal, Qiyshiq, Massiv va h.k.).</summary>
     public int? TextureCode { get; set; }
     /// <summary>Donadorlik: "mayda" / "o'rta" / "yirik" yoki bo'sh.</summary>
     public string? GrainSize { get; set; }
