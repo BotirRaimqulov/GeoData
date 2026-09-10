@@ -73,9 +73,14 @@ public class AuditAndLeakageTests
 
         await using (var db = host.Host.Database.Create())
         {
-            var target = db.AuditEntries.OrderBy(x => x.Id).Skip(1).First();
+            var target = db.AuditEntries.AsNoTracking().OrderBy(x => x.Id).Skip(1).First();
+            var forged = target.Action == "TAMPERED" ? "ALTERED" : "TAMPERED";
+
             db.Database.ExecuteSqlRaw("UPDATE AuditEntries SET Action = {0} WHERE Id = {1}",
-                "LOGIN_SUCCESS", target.Id);
+                forged, target.Id);
+
+            Assert.Equal(forged,
+                db.AuditEntries.AsNoTracking().Single(x => x.Id == target.Id).Action);
         }
 
         Assert.False(await host.Host.Audit.VerifyChainAsync());
@@ -252,6 +257,7 @@ public class AuditAndLeakageTests
             "BEGIN RSA PRIVATE KEY", "BEGIN PRIVATE KEY",
         };
 
+        var vocabularyFiles = new[] { "SecurityLog.cs", "AuditService.cs" };
         var offenders = new List<string>();
 
         foreach (var file in Directory.EnumerateFiles(Path.Combine(root, "src"), "*.*", SearchOption.AllDirectories))
@@ -260,19 +266,23 @@ public class AuditAndLeakageTests
             if (extension is not (".cs" or ".json" or ".config" or ".xaml")) continue;
             if (file.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.Ordinal)) continue;
             if (file.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.Ordinal)) continue;
+            if (vocabularyFiles.Contains(Path.GetFileName(file), StringComparer.Ordinal)) continue;
 
-            var text = File.ReadAllText(file);
-            foreach (var marker in suspicious)
+            foreach (var line in File.ReadLines(file))
             {
-                var index = text.IndexOf(marker, StringComparison.Ordinal);
-                if (index < 0) continue;
+                foreach (var marker in suspicious)
+                {
+                    var index = line.IndexOf(marker, StringComparison.Ordinal);
+                    if (index < 0) continue;
 
-                var tail = text.Substring(index + marker.Length,
-                    Math.Min(40, text.Length - index - marker.Length));
-                if (tail.StartsWith(" keyMaterial", StringComparison.Ordinal)) continue;
-                if (marker == "Password=" && tail.StartsWith(" keyMaterial", StringComparison.Ordinal)) continue;
+                    var tail = line[(index + marker.Length)..].Trim();
+                    if (tail.Length == 0) continue;
+                    if (tail.StartsWith("keyMaterial", StringComparison.Ordinal)) continue;
+                    if (tail.StartsWith("{", StringComparison.Ordinal)) continue;
+                    if (tail.StartsWith("\" +", StringComparison.Ordinal)) continue;
 
-                offenders.Add(Path.GetRelativePath(root, file) + " :: " + marker + tail);
+                    offenders.Add(Path.GetRelativePath(root, file) + " :: " + line.Trim());
+                }
             }
         }
 

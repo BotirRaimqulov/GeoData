@@ -92,6 +92,24 @@ user, which does not resist an attacker who is already that user or root.
   `SQLite format 3`, confidential strings absent from the raw bytes, unkeyed
   and wrong-key opens fail, legacy conversion preserves data.
 
+### B2a. Conversion of an existing plaintext database failed silently — HIGH
+
+* **Risk:** The first run would leave the database unencrypted while the
+  application carried on as if protection were in place.
+* **Location:** `DatabaseProtection.Protect` opened the source database with
+  `SqliteOpenMode.ReadWrite`. An attached database inherits the main
+  connection's open flags, so `ATTACH DATABASE ... KEY ...` could not create
+  the staging file and returned SQLITE_CANTOPEN. The exception was caught and
+  reported as `ProtectionOutcome.Failed`, which `SecurityHost.PrepareStorage`
+  logged and then continued past.
+* **Why dangerous:** Silent failure of the control that B2 depends on. New
+  databases were encrypted; upgraded ones were not.
+* **Fix:** Open the source with `ReadWriteCreate` so ATTACH can create the
+  staging file. The file already exists, so nothing extra is created.
+* **Verification:** `StorageAndRecoveryTests.LegacyPlaintextDatabaseIsConvertedWithoutDataLoss`
+  — this test found the bug and now passes; it asserts the header changes,
+  the data survives, and re-running is a no-op.
+
 ### B3. No authorization — CRITICAL
 
 * **Risk:** Any user performs any operation, including permanent deletion and

@@ -66,7 +66,7 @@ public static class DatabaseProtection
                 new SqliteConnectionStringBuilder
                 {
                     DataSource = file,
-                    Mode = SqliteOpenMode.ReadWrite,
+                    Mode = SqliteOpenMode.ReadWriteCreate,
                     Pooling = false,
                 }.ToString()))
             {

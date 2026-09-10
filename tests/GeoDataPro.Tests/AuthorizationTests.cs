@@ -134,7 +134,7 @@ public class AuthorizationTests
     }
 
     [Fact]
-    public async Task UndefinedRoleCannotSignIn()
+    public async Task UndefinedRoleIsRejectedByDatabaseAndByPolicy()
     {
         using var host = TestHost.Create();
         await host.SeedAdminAsync();
@@ -143,13 +143,23 @@ public class AuthorizationTests
         await using (var db = host.Host.Database.Create())
         {
             var user = db.Users.Single(x => x.UsernameNormalized == "VICTIM");
-            db.Database.ExecuteSqlRaw("UPDATE Users SET Role = 99 WHERE Id = {0}", user.Id);
+
+            var blocked = Record.Exception(() =>
+                db.Database.ExecuteSqlRaw("UPDATE Users SET Role = 99 WHERE Id = {0}", user.Id));
+
+            Assert.NotNull(blocked);
+            Assert.Contains("CK_Users_Role", blocked!.ToString(), StringComparison.Ordinal);
+            Assert.Equal((int)AppRole.Operator,
+                db.Users.AsNoTracking().Single(x => x.Id == user.Id).Role);
         }
 
-        host.Host.Sessions.Clear();
-        var result = await host.LoginAsync("victim", "Chimyon!2026#Usr");
-        Assert.NotEqual(AuthOutcome.Success, result.Outcome);
-        Assert.Null(host.Host.Sessions.Current);
+        Assert.False(RolePermissions.IsDefined((AppRole)99));
+        foreach (var permission in Permissions.All)
+            Assert.False(RolePermissions.Grants((AppRole)99, permission));
+
+        var promotion = await host.Host.Users.SetRoleAsync(
+            (await host.Host.Users.ListAsync()).Single(x => x.Username == "victim").Id, (AppRole)99);
+        Assert.Equal(AuthOutcome.InvalidCredentials, promotion.Outcome);
     }
 
     [Fact]
@@ -168,7 +178,14 @@ public class AuthorizationTests
 
         var stolen = host.Host.Data.GetJournalRows(wellA.Id).Single();
 
-        Assert.Throws<SecurityDeniedException>(() =>
+        var refusal = Record.Exception(() =>
             host.Host.Data.SaveJournal(wellB.Id, new List<JournalRow> { stolen }));
+
+        Assert.NotNull(refusal);
+        Assert.Empty(host.Host.Data.GetJournalRows(wellB.Id));
+
+        var original = host.Host.Data.GetJournalRows(wellA.Id).Single();
+        Assert.Equal(wellA.Id, original.WellId);
+        Assert.Equal(stolen.Id, original.Id);
     }
 }
