@@ -186,15 +186,22 @@
                                 </DataGridTemplateColumn.CellTemplate>
                                 <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate>
-                                        <ItemsControl ItemsSource="{Binding ClasticMaterialItems}" Focusable="False" Margin="2,1">
-                                            <ItemsControl.ItemTemplate>
+                                        <ComboBox IsEditable="True" IsReadOnly="True"
+                                                  Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
+                                                  ItemsSource="{Binding ClasticMaterialItems}">
+                                            <ComboBox.ItemContainerStyle>
+                                                <Style TargetType="ComboBoxItem">
+                                                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>
+                                                </Style>
+                                            </ComboBox.ItemContainerStyle>
+                                            <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <CheckBox Content="{Binding Name}"
                                                               IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                              Margin="0,1" />
+                                                              IsHitTestVisible="False" Focusable="False" Margin="0,1"/>
                                                 </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
@@ -399,15 +406,22 @@
                                       SelectedValue="{Binding IronHydroxideCode, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Code" />
 
                             <TextBlock Text="MINERAL TARKIBI" Style="{StaticResource Caption}" />
-                            <ItemsControl Margin="0,4,0,14" ItemsSource="{Binding ClasticMaterialItems}">
-                                <ItemsControl.ItemTemplate>
+                            <ComboBox Margin="0,4,0,14" IsEditable="True" IsReadOnly="True"
+                                      Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
+                                      ItemsSource="{Binding ClasticMaterialItems}">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                                <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <CheckBox Content="{Binding Name}"
                                                   IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                  Margin="0,2" />
+                                                  IsHitTestVisible="False" Focusable="False" Margin="0,1"/>
                                     </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
 
                             <TextBlock Text="TEKSTURA" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14" DisplayMemberPath="Name"

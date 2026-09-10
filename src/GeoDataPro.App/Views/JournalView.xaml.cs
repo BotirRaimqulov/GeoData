@@ -320,4 +320,15 @@ public partial class JournalView : UserControl
         _variantPopup = null;
         p.IsOpen = false;
     }
+
+    // ==================== Mineral tarkibi: multi-select ComboBox ====================
+
+    void ClasticComboItem_PreviewDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ComboBoxItem cbi && cbi.DataContext is CheckableClasticItem item)
+        {
+            item.IsChecked = !item.IsChecked;
+            e.Handled = true;
+        }
+    }
 }
