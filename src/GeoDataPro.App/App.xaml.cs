@@ -36,11 +36,21 @@ public partial class App : Application
 
             _host = SecurityHost.Build(paths, storage, AppInfo.Version, level);
             AppNotifier.Attach(_host);
-            _host.PrepareStorage();
+
+            var readiness = _host.PrepareStorage();
+
+            if (!readiness.DatabaseEncrypted)
+                AppNotifier.Warn(
+                    "Diqqat: ma'lumotlar bazasi shifrlanmagan holatda ochildi." + Environment.NewLine +
+                    "Maxfiy ma'lumotlar himoyalanmagan. Administratorga murojaat qiling.");
+            else if (readiness.PlaintextRescueFile != null)
+                AppNotifier.Info(
+                    "Baza shifrlandi. Eski shifrlanmagan nusxa saqlab qo'yildi — " +
+                    "uni xavfsiz joyga ko'chiring yoki butunlay o'chiring.");
         }
         catch (Exception ex)
         {
-            AppNotifier.Error("Ilovani ishga tushirib bo'lmadi.", ex);
+            AppNotifier.Startup("Ilovani ishga tushirib bo'lmadi.", ex);
             Shutdown(-1);
             return;
         }
@@ -60,7 +70,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            AppNotifier.Error("Ilovani ishga tushirib bo'lmadi.", ex);
+            AppNotifier.Startup("Ilovani ishga tushirib bo'lmadi.", ex);
             Shutdown(-1);
         }
     }
@@ -78,7 +88,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            AppNotifier.Error("Kirish oynasini ochib bo'lmadi.", ex);
+            AppNotifier.Startup("Kirish oynasini ochib bo'lmadi.", ex);
             return false;
         }
     }

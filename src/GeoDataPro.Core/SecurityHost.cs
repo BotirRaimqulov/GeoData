@@ -9,6 +9,11 @@ using GeoDataPro.Core.Services;
 
 namespace GeoDataPro.Core;
 
+public sealed record StorageReadiness(
+    bool DatabaseEncrypted,
+    ProtectionOutcome Outcome,
+    string? PlaintextRescueFile);
+
 public sealed class SecurityHost : IDisposable
 {
     bool _disposed;
@@ -108,20 +113,23 @@ public sealed class SecurityHost : IDisposable
         return host;
     }
 
-    public void PrepareStorage()
+    public StorageReadiness PrepareStorage()
     {
         var keyMaterial = DatabaseLocation.CurrentKeyMaterial();
         var target = DatabaseLocation.DatabaseFile;
+        var outcome = ProtectionOutcome.NothingToDo;
+        string? rescue = null;
 
         try
         {
             DatabaseProtection.Adopt(DatabaseLocation.LegacyDatabaseFile, target, keyMaterial);
-            var outcome = DatabaseProtection.Protect(target, keyMaterial, out _);
+            outcome = DatabaseProtection.Protect(target, keyMaterial, out rescue);
             if (outcome == ProtectionOutcome.Failed)
                 Log.Write(DiagnosticLevel.Error, "storage-protect");
         }
         catch (Exception ex)
         {
+            outcome = ProtectionOutcome.Failed;
             Log.Write(DiagnosticLevel.Error, "storage-protect", ex);
         }
 
@@ -132,6 +140,14 @@ public sealed class SecurityHost : IDisposable
 
         Database.EnsureReady();
         Paths.Harden(target);
+
+        var state = DatabaseProtection.Inspect(target);
+        var encrypted = state != ProtectionState.Unprotected;
+
+        if (!encrypted)
+            Log.Write(DiagnosticLevel.Error, "storage-unprotected");
+
+        return new StorageReadiness(encrypted, outcome, rescue);
     }
 
     static string ResolveDeviceId(ISecretKeyProvider keys)
