@@ -17,6 +17,7 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
@@ -69,6 +70,7 @@ public partial class App : Application
             var window = new MainWindow();
             step = "window-show";
             MainWindow = window;
+            window.Closed += (_, _) => Shutdown(0);
             window.Show();
         }
         catch (Exception ex)
