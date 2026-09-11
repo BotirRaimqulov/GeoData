@@ -101,6 +101,7 @@
                                                 Binding="{Binding Top, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
                             <DataGridTextColumn Header="Pastki (m)" EditingElementStyle="{StaticResource CellEditor}" Width="104" MinWidth="88"
                                                 Binding="{Binding Bottom, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
+                            <DataGridTextColumn Header="Qalinlik (m)" Binding="{Binding Interval, StringFormat={}{0:N1}, Mode=OneWay}" IsReadOnly="True" Width="100" MinWidth="84" />
                             <DataGridTextColumn Header="Kern chiqishi (m)" EditingElementStyle="{StaticResource CellEditor}" Width="112" MinWidth="96"
                                                 Binding="{Binding CoreRecoveryM, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
                             <DataGridTextColumn Header="Kern chiqishi, %" Binding="{Binding RecoveryPercent, StringFormat={}{0:N1}%, Mode=OneWay}" IsReadOnly="True" Width="116" MinWidth="104" />
