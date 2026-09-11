@@ -17,6 +17,7 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
@@ -61,16 +62,20 @@ public partial class App : Application
             return;
         }
 
+        string step = "attach";
         try
         {
             AppState.Instance.Attach(_host);
+            step = "window-create";
             var window = new MainWindow();
+            step = "window-show";
             MainWindow = window;
+            window.Closed += (_, _) => Shutdown(0);
             window.Show();
         }
         catch (Exception ex)
         {
-            AppNotifier.Startup("Ilovani ishga tushirib bo'lmadi.", ex);
+            AppNotifier.Startup($"Ilovani ishga tushirib bo'lmadi. [{step}]", ex);
             Shutdown(-1);
         }
     }

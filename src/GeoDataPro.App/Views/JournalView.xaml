@@ -12,7 +12,7 @@
         <KeyBinding Key="S" Modifiers="Control" Command="{Binding Journal.SaveCommand}" />
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding Journal.AddRowCommand}" />
         <KeyBinding Key="D" Modifiers="Control" Command="{Binding Journal.DuplicateRowCommand}" />
-        <KeyBinding Key="Delete" Command="{Binding Journal.DeleteRowCommand}" />
+        <!-- Delete key is handled in Grid_PreviewKeyDown to avoid conflict with cell editing -->
     </UserControl.InputBindings>
 
     <Grid Margin="24,20,24,16">
@@ -94,13 +94,15 @@
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Visible"
                               PreviewMouseWheel="Grid_PreviewMouseWheel"
-                              PreparingCellForEdit="Grid_PreparingCellForEdit">
+                              PreparingCellForEdit="Grid_PreparingCellForEdit"
+                              PreviewKeyDown="Grid_PreviewKeyDown">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="58" MinWidth="52" />
                             <DataGridTextColumn Header="Yuqori (m)" EditingElementStyle="{StaticResource CellEditor}" Width="104" MinWidth="88"
                                                 Binding="{Binding Top, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
                             <DataGridTextColumn Header="Pastki (m)" EditingElementStyle="{StaticResource CellEditor}" Width="104" MinWidth="88"
                                                 Binding="{Binding Bottom, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
+                            <DataGridTextColumn Header="Qalinlik (m)" Binding="{Binding Interval, StringFormat={}{0:N1}, Mode=OneWay}" IsReadOnly="True" Width="100" MinWidth="84" />
                             <DataGridTextColumn Header="Kern chiqishi (m)" EditingElementStyle="{StaticResource CellEditor}" Width="112" MinWidth="96"
                                                 Binding="{Binding CoreRecoveryM, Converter={StaticResource Num1}, UpdateSourceTrigger=PropertyChanged}" />
                             <DataGridTextColumn Header="Kern chiqishi, %" Binding="{Binding RecoveryPercent, StringFormat={}{0:N1}%, Mode=OneWay}" IsReadOnly="True" Width="116" MinWidth="104" />
@@ -206,7 +208,9 @@
                                     <DataTemplate>
                                         <ComboBox IsEditable="True" IsReadOnly="True"
                                                   Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
-                                                  ItemsSource="{Binding ClasticMaterialItems}">
+                                                  ItemsSource="{Binding ClasticMaterialItems}"
+                                                  DropDownClosed="ClasticCombo_DropDownClosed"
+                                                  SelectionChanged="ClasticCombo_SelectionChanged">
                                             <ComboBox.ItemContainerStyle>
                                                 <Style TargetType="ComboBoxItem">
                                                     <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>
@@ -427,7 +431,9 @@
                             <TextBlock Text="MINERAL TARKIBI" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14" IsEditable="True" IsReadOnly="True"
                                       Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
-                                      ItemsSource="{Binding ClasticMaterialItems}">
+                                      ItemsSource="{Binding ClasticMaterialItems}"
+                                      DropDownClosed="ClasticCombo_DropDownClosed"
+                                      SelectionChanged="ClasticCombo_SelectionChanged">
                                 <ComboBox.ItemContainerStyle>
                                     <Style TargetType="ComboBoxItem">
                                         <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>

@@ -72,6 +72,9 @@ public static class Seed
         (32, "Granit",                            "Гранит",                                    "granit.png",                       "#E8B7B0"),
         (33, "Dolomit",                           "Доломит",                                   "dolomit.png",                      "#D8E4E8"),
         (34, "Slanest",                           "Сланец",                                    "slanest.png",                      "#B8BCC0"),
+        (35, "Mergel gilli",                      "Мергель глинистый",                         "mergel_gilli.png",                 "#B8C2B0"),
+        (36, "Qumtosh gilli",                     "Песчаник глинистый",                        "qumtosh_gilli.png",                "#DACED0"),
+        (37, "Qumtosh ohaktoshli",                "Песчаник известняковый",                    "qumtosh_ohaktoshli.png",           "#E0DCA8"),
     };
 
     static IEnumerable<LithoCode> LithoSeed() => LithoRows.Select(r => new LithoCode
