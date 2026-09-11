@@ -50,7 +50,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            AppNotifier.Error("Ilovani ishga tushirib bo'lmadi.", ex);
+            AppNotifier.Startup("Ilovani ishga tushirib bo'lmadi.", ex);
             Shutdown(-1);
             return;
         }
@@ -70,7 +70,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            AppNotifier.Error("Ilovani ishga tushirib bo'lmadi.", ex);
+            AppNotifier.Startup("Ilovani ishga tushirib bo'lmadi.", ex);
             Shutdown(-1);
         }
     }
@@ -88,7 +88,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            AppNotifier.Error("Kirish oynasini ochib bo'lmadi.", ex);
+            AppNotifier.Startup("Kirish oynasini ochib bo'lmadi.", ex);
             return false;
         }
     }

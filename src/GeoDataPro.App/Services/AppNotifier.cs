@@ -18,7 +18,11 @@ public static class AppNotifier
 
     public static void Warn(string message) => Show(message, MessageBoxImage.Warning);
 
-    public static void Error(string message, Exception? ex = null)
+    public static void Error(string message, Exception? ex = null) => Report(message, ex, false);
+
+    public static void Startup(string message, Exception? ex = null) => Report(message, ex, true);
+
+    static void Report(string message, Exception? ex, bool diagnostics)
     {
         if (ex == null)
         {
@@ -29,15 +33,34 @@ public static class AppNotifier
         var friendly = Translate(ex, message);
         var host = _host;
 
-        if (host == null)
+        var body = friendly;
+
+        if (host != null)
         {
-            Show(friendly, MessageBoxImage.Error);
-            return;
+            var report = host.Errors.Describe(ex, friendly);
+            body += Environment.NewLine + Environment.NewLine + "Kod: " + report.Reference;
         }
 
-        var report = host.Errors.Describe(ex, friendly);
-        Show(report.UserMessage + Environment.NewLine + Environment.NewLine + "Kod: " + report.Reference,
-            MessageBoxImage.Error);
+        if (diagnostics)
+            body += Environment.NewLine + Environment.NewLine + Chain(ex);
+
+        Show(body, MessageBoxImage.Error);
+    }
+
+    static string Chain(Exception ex)
+    {
+        var parts = new System.Collections.Generic.List<string>();
+        Exception? current = ex;
+        int depth = 0;
+
+        while (current != null && depth < 6)
+        {
+            parts.Add(current.GetType().Name);
+            current = current.InnerException;
+            depth++;
+        }
+
+        return string.Join(" <- ", parts);
     }
 
     public static void LogException(Exception ex, string context) =>
