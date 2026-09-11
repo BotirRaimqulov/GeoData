@@ -59,24 +59,6 @@ public partial class App : Application
         if (!Authenticate())
         {
             Shutdown(0);
-            return;
-        }
-
-        string step = "attach";
-        try
-        {
-            AppState.Instance.Attach(_host);
-            step = "window-create";
-            var window = new MainWindow();
-            step = "window-show";
-            MainWindow = window;
-            window.Closed += (_, _) => Shutdown(0);
-            window.Show();
-        }
-        catch (Exception ex)
-        {
-            AppNotifier.Startup($"Ilovani ishga tushirib bo'lmadi. [{step}]", ex);
-            Shutdown(-1);
         }
     }
 
@@ -89,7 +71,43 @@ public partial class App : Application
         {
             var bootstrap = !host.Authentication.HasAnyUserAsync().GetAwaiter().GetResult();
             var login = new LoginWindow(host, bootstrap);
-            return login.ShowDialog() == true && login.Authenticated;
+            bool success = false;
+
+            // LoginWindow fires this event after auth succeeds but before closing itself,
+            // so the spinner is still visible while MainWindow is being constructed.
+            login.ReadyToLaunchMainWindow += () =>
+            {
+                success = true;
+                string step = "attach";
+                try
+                {
+                    AppState.Instance.Attach(host);
+                    step = "window-create";
+                    var window = new MainWindow();
+                    step = "window-show";
+                    MainWindow = window;
+                    window.Closed += (_, _) => Shutdown(0);
+                    window.Show();
+                }
+                catch (Exception ex)
+                {
+                    AppNotifier.Startup($"Ilovani ishga tushirib bo'lmadi. [{step}]", ex);
+                    success = false;
+                }
+                finally
+                {
+                    login.CloseAfterReady();
+                }
+            };
+
+            // PushFrame keeps the dispatcher running (processes UI events) while the
+            // login window is open; frame exits when the window closes.
+            var frame = new System.Windows.Threading.DispatcherFrame();
+            login.Closed += (_, _) => frame.Continue = false;
+            login.Show();
+            System.Windows.Threading.Dispatcher.PushFrame(frame);
+
+            return success;
         }
         catch (Exception ex)
         {

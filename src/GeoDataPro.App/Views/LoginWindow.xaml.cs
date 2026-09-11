@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using GeoDataPro.Core;
 using GeoDataPro.Core.Security;
 
@@ -14,6 +15,13 @@ public partial class LoginWindow : Window
     readonly bool _bootstrap;
     readonly CancellationTokenSource _cts = new();
     bool _busy;
+
+    /// <summary>
+    /// Fired by the login window after authentication succeeds, while the loading overlay
+    /// is still visible. The subscriber (App.cs) should create and show the main window,
+    /// then call <see cref="CloseAfterReady"/> to dismiss this window.
+    /// </summary>
+    public event Action? ReadyToLaunchMainWindow;
 
     public LoginWindow(SecurityHost host, bool bootstrap)
     {
@@ -156,27 +164,69 @@ public partial class LoginWindow : Window
             return;
         }
 
-        var result = await _host.Authentication
-            .LoginAsync(name, PassField.Value, _cts.Token)
-            .ConfigureAwait(true);
+        // Switch to login view briefly so user sees the two-step flow
+        HeadingText.Text = "Xush kelibsiz";
+        SubheadingText.Text = "Hisob yaratildi — tizimga kirish amalga oshirilmoqda...";
+        ConfirmField.Visibility = Visibility.Collapsed;
+        HintText.Visibility = Visibility.Collapsed;
+        SubmitButton.Visibility = Visibility.Collapsed;
 
+        var savedPass = PassField.Value;
         PassField.Clear();
         ConfirmField.Clear();
 
+        ShowLoadingOverlay("Kirish amalga oshirilmoqda...");
+
+        var result = await _host.Authentication
+            .LoginAsync(name, savedPass, _cts.Token)
+            .ConfigureAwait(true);
+
         if (result.Succeeded)
         {
-            Succeed();
+            OverlayText.Text = "Ilova yuklanmoqda...";
+            Authenticated = true;
+            ReadyToLaunchMainWindow?.Invoke();
             return;
         }
 
+        // Auto-login failed: restore login UI
+        LoadingOverlay.Visibility = Visibility.Collapsed;
+        SubmitButton.Visibility = Visibility.Visible;
+        SubmitButton.Content = "Kirish";
+        ConfirmField.Visibility = Visibility.Collapsed;
+        UserField.SetText(name);
         Fail(Describe(result));
     }
 
     void Succeed()
     {
         Authenticated = true;
-        DialogResult = true;
-        Close();
+        ShowLoadingOverlay("Ilova yuklanmoqda...");
+        ReadyToLaunchMainWindow?.Invoke();
+        // Window stays open showing overlay; App.cs calls CloseAfterReady() when done.
+    }
+
+    public void CloseAfterReady()
+    {
+        // Invoked by App.cs after MainWindow is shown.
+        Dispatcher.Invoke(() => { Authenticated = true; Close(); });
+    }
+
+    void ShowLoadingOverlay(string message)
+    {
+        OverlayText.Text = message;
+        LoadingOverlay.Visibility = Visibility.Visible;
+        StartSpinner();
+    }
+
+    void StartSpinner()
+    {
+        var anim = new DoubleAnimation(0, 360, new Duration(TimeSpan.FromSeconds(0.8)))
+        {
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = null,
+        };
+        SpinnerAngle.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, anim);
     }
 
     void Fail(string message)

@@ -94,6 +94,22 @@ public partial class SecretField : UserControl
         ValueChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    public void SetText(string text)
+    {
+        _syncing = true;
+        try
+        {
+            Plain.Text = text;
+            Secret.Password = text;
+        }
+        finally
+        {
+            _syncing = false;
+        }
+
+        ValueChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     void Secret_Changed(object sender, RoutedEventArgs e)
     {
         if (_syncing) return;

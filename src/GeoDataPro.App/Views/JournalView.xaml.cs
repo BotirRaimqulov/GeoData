@@ -137,6 +137,9 @@ public partial class JournalView : UserControl
     {
         if (sender is not DataGrid grid) return;
 
+        // Don't intercept scroll when a ComboBox dropdown is open in the current cell
+        if (IsAnyComboDropdownOpen(grid)) return;
+
         var scroller = FindScrollViewer(grid);
         if (scroller == null) return;
 
@@ -149,6 +152,15 @@ public partial class JournalView : UserControl
         var step = e.Delta / 120d * 64d;
         scroller.ScrollToHorizontalOffset(scroller.HorizontalOffset - step);
         e.Handled = true;
+    }
+
+    static bool IsAnyComboDropdownOpen(DataGrid grid)
+    {
+        var item = grid.CurrentItem;
+        if (item == null) return false;
+        var row = grid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
+        if (row == null) return false;
+        return FindInTree<ComboBox>(row) is { IsDropDownOpen: true };
     }
 
     static ScrollViewer? FindScrollViewer(DependencyObject? node)
@@ -428,14 +440,21 @@ public partial class JournalView : UserControl
             _clasticToggling = true;
             item.IsChecked = !item.IsChecked;
             e.Handled = true;
-            Dispatcher.BeginInvoke(() => _clasticToggling = false, DispatcherPriority.Input);
+            // Flag is reset only inside DropDownClosed to avoid race with that event.
         }
     }
 
     void ClasticCombo_DropDownClosed(object sender, EventArgs e)
     {
         if (_clasticToggling && sender is ComboBox combo)
-            Dispatcher.BeginInvoke(() => combo.IsDropDownOpen = true, DispatcherPriority.Input);
+        {
+            _clasticToggling = false;
+            combo.Dispatcher.BeginInvoke(() => combo.IsDropDownOpen = true, DispatcherPriority.Input);
+        }
+        else
+        {
+            _clasticToggling = false;
+        }
     }
 
     void ClasticCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
