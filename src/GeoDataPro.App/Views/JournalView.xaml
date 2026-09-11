@@ -208,7 +208,9 @@
                                     <DataTemplate>
                                         <ComboBox IsEditable="True" IsReadOnly="True"
                                                   Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
-                                                  ItemsSource="{Binding ClasticMaterialItems}">
+                                                  ItemsSource="{Binding ClasticMaterialItems}"
+                                                  DropDownClosed="ClasticCombo_DropDownClosed"
+                                                  SelectionChanged="ClasticCombo_SelectionChanged">
                                             <ComboBox.ItemContainerStyle>
                                                 <Style TargetType="ComboBoxItem">
                                                     <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>
@@ -429,7 +431,9 @@
                             <TextBlock Text="MINERAL TARKIBI" Style="{StaticResource Caption}" />
                             <ComboBox Margin="0,4,0,14" IsEditable="True" IsReadOnly="True"
                                       Text="{Binding ClasticMaterialDisplay, Mode=OneWay}"
-                                      ItemsSource="{Binding ClasticMaterialItems}">
+                                      ItemsSource="{Binding ClasticMaterialItems}"
+                                      DropDownClosed="ClasticCombo_DropDownClosed"
+                                      SelectionChanged="ClasticCombo_SelectionChanged">
                                 <ComboBox.ItemContainerStyle>
                                     <Style TargetType="ComboBoxItem">
                                         <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ClasticComboItem_PreviewDown"/>

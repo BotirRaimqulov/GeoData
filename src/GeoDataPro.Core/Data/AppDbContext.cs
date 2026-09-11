@@ -146,13 +146,51 @@ public class AppDbContext : DbContext
                 entry.Entity.RowVersion = Guid.NewGuid().ToString("N");
     }
 
+    // Increment when adding new migrations or reseed logic.
+    const int CurrentStartupVersion = 1;
+
     public void EnsureSeeded()
     {
         Database.EnsureCreated();
         ApplySafetyPragmas();
-        ApplyLightMigrations();
-        Seed.Run(this);
+
+        if (!IsStartupVersionCurrent())
+        {
+            ApplyLightMigrations();
+            Seed.Run(this);
+            SaveStartupVersion();
+        }
     }
+
+    bool IsStartupVersionCurrent()
+    {
+        try
+        {
+            var tableExists = Database.SqlQueryRaw<int>(
+                "SELECT COUNT(*) AS \"Value\" FROM sqlite_master WHERE type='table' AND name='SecurityFlags'")
+                .AsEnumerable().FirstOrDefault() != 0;
+            if (!tableExists) return false;
+            var ver = Database.SqlQueryRaw<string>(
+                "SELECT COALESCE(Value,'0') AS \"Value\" FROM SecurityFlags WHERE Name='startup_version'")
+                .AsEnumerable().FirstOrDefault();
+            return ver == CurrentStartupVersion.ToString();
+        }
+        catch { return false; }
+    }
+
+#pragma warning disable EF1002
+    void SaveStartupVersion()
+    {
+        try
+        {
+            Database.ExecuteSqlRaw(
+                "INSERT INTO SecurityFlags(Name,Value,UpdatedUtc) " +
+                $"VALUES('startup_version','{CurrentStartupVersion}','{DateTime.UtcNow:O}') " +
+                "ON CONFLICT(Name) DO UPDATE SET Value=excluded.Value,UpdatedUtc=excluded.UpdatedUtc");
+        }
+        catch { }
+    }
+#pragma warning restore EF1002
 
     void ApplySafetyPragmas()
     {

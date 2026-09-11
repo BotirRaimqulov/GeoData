@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using GeoDataPro.Core.Audit;
 using GeoDataPro.Core.Backup;
 using GeoDataPro.Core.Data;
@@ -133,13 +134,24 @@ public sealed class SecurityHost : IDisposable
             Log.Write(DiagnosticLevel.Error, "storage-protect", ex);
         }
 
-        Paths.Harden(Paths.DataDirectory);
-        Paths.Harden(Paths.KeyDirectory);
-        Paths.Harden(Paths.BackupDirectory);
-        Paths.Harden(Paths.LogDirectory);
+        // Harden directories in background — they already exist and ACL writes
+        // don't need to block the startup critical path.
+        var dataDir  = Paths.DataDirectory;
+        var keyDir   = Paths.KeyDirectory;
+        var backDir  = Paths.BackupDirectory;
+        var logDir   = Paths.LogDirectory;
+        Task.Run(() =>
+        {
+            Paths.Harden(dataDir);
+            Paths.Harden(keyDir);
+            Paths.Harden(backDir);
+            Paths.Harden(logDir);
+        });
 
         Database.EnsureReady();
-        Paths.Harden(target);
+
+        var dbFile = target;
+        Task.Run(() => Paths.Harden(dbFile));
 
         var state = DatabaseProtection.Inspect(target);
         var encrypted = state != ProtectionState.Unprotected;
