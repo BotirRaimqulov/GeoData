@@ -147,7 +147,7 @@ public class AppDbContext : DbContext
     }
 
     // Increment when adding new migrations or reseed logic.
-    const int CurrentStartupVersion = 1;
+    const int CurrentStartupVersion = 2;
 
     public void EnsureSeeded()
     {
