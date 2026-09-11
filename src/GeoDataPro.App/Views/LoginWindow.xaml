@@ -35,7 +35,7 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Width="34" Height="34" CornerRadius="9" Background="{StaticResource Accent}"
                                     Margin="0,0,12,0">
-                                <Image Source="../Assets/AppLogo.png" Width="22" Height="22" Stretch="Uniform"
+                                <Image Source="pack://application:,,,/Assets/AppLogo.png" Width="22" Height="22" Stretch="Uniform"
                                        RenderOptions.BitmapScalingMode="HighQuality" />
                             </Border>
                             <TextBlock Text="GeoData Pro" FontSize="19" FontWeight="SemiBold"
