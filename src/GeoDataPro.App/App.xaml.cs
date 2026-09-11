@@ -61,16 +61,19 @@ public partial class App : Application
             return;
         }
 
+        string step = "attach";
         try
         {
             AppState.Instance.Attach(_host);
+            step = "window-create";
             var window = new MainWindow();
+            step = "window-show";
             MainWindow = window;
             window.Show();
         }
         catch (Exception ex)
         {
-            AppNotifier.Startup("Ilovani ishga tushirib bo'lmadi.", ex);
+            AppNotifier.Startup($"Ilovani ishga tushirib bo'lmadi. [{step}]", ex);
             Shutdown(-1);
         }
     }
