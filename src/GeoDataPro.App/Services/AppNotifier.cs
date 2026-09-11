@@ -55,12 +55,16 @@ public static class AppNotifier
 
         while (current != null && depth < 6)
         {
-            parts.Add(current.GetType().Name);
+            var name = current.GetType().Name;
+            var msg = current.Message;
+            if (!string.IsNullOrWhiteSpace(msg) && msg.Length <= 120)
+                name += ": " + msg;
+            parts.Add(name);
             current = current.InnerException;
             depth++;
         }
 
-        return string.Join(" <- ", parts);
+        return string.Join(Environment.NewLine + "  <- ", parts);
     }
 
     public static void LogException(Exception ex, string context) =>

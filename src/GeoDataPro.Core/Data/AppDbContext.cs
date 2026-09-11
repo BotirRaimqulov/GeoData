@@ -220,7 +220,88 @@ public class AppDbContext : DbContext
             Database.ExecuteSqlRaw($"CREATE UNIQUE INDEX \"IX_{table}_Code\" ON {safeTable} (\"Code\")");
         }
 
+        void EnsureSecurityTables()
+        {
+            if (!TableExists("Users"))
+            {
+                Database.ExecuteSqlRaw(
+                    "CREATE TABLE \"Users\" (" +
+                    "\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_Users\" PRIMARY KEY AUTOINCREMENT, " +
+                    "\"Username\" TEXT NOT NULL, " +
+                    "\"UsernameNormalized\" TEXT NOT NULL, " +
+                    "\"DisplayName\" TEXT NOT NULL, " +
+                    "\"PasswordHash\" TEXT NOT NULL, " +
+                    "\"Role\" INTEGER NOT NULL, " +
+                    "\"IsActive\" INTEGER NOT NULL, " +
+                    "\"MustChangePassword\" INTEGER NOT NULL, " +
+                    "\"FailedAttempts\" INTEGER NOT NULL, " +
+                    "\"LockoutEndUtc\" TEXT NULL, " +
+                    "\"LastLoginUtc\" TEXT NULL, " +
+                    "\"CreatedUtc\" TEXT NOT NULL, " +
+                    "\"UpdatedUtc\" TEXT NOT NULL, " +
+                    "\"RowVersion\" TEXT NOT NULL, " +
+                    "\"Stamp\" TEXT NULL, " +
+                    "CONSTRAINT \"CK_Users_Role\" CHECK (\"Role\" BETWEEN 0 AND 4))");
+                Database.ExecuteSqlRaw(
+                    "CREATE UNIQUE INDEX \"IX_Users_UsernameNormalized\" ON \"Users\" (\"UsernameNormalized\")");
+            }
+
+            if (!TableExists("AuditEntries"))
+            {
+                Database.ExecuteSqlRaw(
+                    "CREATE TABLE \"AuditEntries\" (" +
+                    "\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_AuditEntries\" PRIMARY KEY AUTOINCREMENT, " +
+                    "\"TimestampUtc\" TEXT NOT NULL, " +
+                    "\"UserId\" INTEGER NULL, " +
+                    "\"Username\" TEXT NULL, " +
+                    "\"Action\" TEXT NOT NULL, " +
+                    "\"Entity\" TEXT NULL, " +
+                    "\"EntityId\" TEXT NULL, " +
+                    "\"Result\" TEXT NOT NULL, " +
+                    "\"Reason\" TEXT NULL, " +
+                    "\"AppVersion\" TEXT NULL, " +
+                    "\"DeviceId\" TEXT NULL, " +
+                    "\"SessionId\" TEXT NULL, " +
+                    "\"PrevChain\" TEXT NULL, " +
+                    "\"Chain\" TEXT NULL)");
+                Database.ExecuteSqlRaw(
+                    "CREATE INDEX \"IX_AuditEntries_TimestampUtc\" ON \"AuditEntries\" (\"TimestampUtc\")");
+                Database.ExecuteSqlRaw(
+                    "CREATE INDEX \"IX_AuditEntries_Action\" ON \"AuditEntries\" (\"Action\")");
+            }
+
+            if (!TableExists("SecurityFlags"))
+            {
+                Database.ExecuteSqlRaw(
+                    "CREATE TABLE \"SecurityFlags\" (" +
+                    "\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_SecurityFlags\" PRIMARY KEY AUTOINCREMENT, " +
+                    "\"Name\" TEXT NOT NULL, " +
+                    "\"Value\" TEXT NULL, " +
+                    "\"UpdatedUtc\" TEXT NOT NULL)");
+                Database.ExecuteSqlRaw(
+                    "CREATE UNIQUE INDEX \"IX_SecurityFlags_Name\" ON \"SecurityFlags\" (\"Name\")");
+            }
+
+            if (!TableExists("DeletedRecords"))
+            {
+                Database.ExecuteSqlRaw(
+                    "CREATE TABLE \"DeletedRecords\" (" +
+                    "\"Id\" INTEGER NOT NULL CONSTRAINT \"PK_DeletedRecords\" PRIMARY KEY AUTOINCREMENT, " +
+                    "\"Entity\" TEXT NOT NULL, " +
+                    "\"EntityId\" TEXT NOT NULL, " +
+                    "\"Payload\" TEXT NOT NULL, " +
+                    "\"DeletedUtc\" TEXT NOT NULL, " +
+                    "\"DeletedByUserId\" INTEGER NULL, " +
+                    "\"Stamp\" TEXT NULL, " +
+                    "\"Restored\" INTEGER NOT NULL)");
+                Database.ExecuteSqlRaw(
+                    "CREATE INDEX \"IX_DeletedRecords_Entity_EntityId\" ON \"DeletedRecords\" (\"Entity\", \"EntityId\")");
+            }
+        }
+
         using var tx = Database.BeginTransaction();
+
+        EnsureSecurityTables();
 
         EnsureRefTable("FloraFaunaCodes");
         EnsureRefTable("IronHydroxideCodes");
