@@ -12,7 +12,7 @@
         <KeyBinding Key="S" Modifiers="Control" Command="{Binding Journal.SaveCommand}" />
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding Journal.AddRowCommand}" />
         <KeyBinding Key="D" Modifiers="Control" Command="{Binding Journal.DuplicateRowCommand}" />
-        <KeyBinding Key="Delete" Command="{Binding Journal.DeleteRowCommand}" />
+        <!-- Delete key is handled in Grid_PreviewKeyDown to avoid conflict with cell editing -->
     </UserControl.InputBindings>
 
     <Grid Margin="24,20,24,16">
@@ -94,7 +94,8 @@
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Visible"
                               PreviewMouseWheel="Grid_PreviewMouseWheel"
-                              PreparingCellForEdit="Grid_PreparingCellForEdit">
+                              PreparingCellForEdit="Grid_PreparingCellForEdit"
+                              PreviewKeyDown="Grid_PreviewKeyDown">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="№" Binding="{Binding OrderNo}" IsReadOnly="True" Width="58" MinWidth="52" />
                             <DataGridTextColumn Header="Yuqori (m)" EditingElementStyle="{StaticResource CellEditor}" Width="104" MinWidth="88"

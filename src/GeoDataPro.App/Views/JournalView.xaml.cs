@@ -71,6 +71,68 @@ public partial class JournalView : UserControl
             OpenCombo(combo);
     }
 
+    void Grid_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (sender is not DataGrid grid) return;
+
+        var isEditing = IsCellEditing(grid);
+
+        if (e.Key == Key.Delete && !isEditing)
+        {
+            var vm = DataContext as MainViewModel;
+            var cmd = vm?.Journal?.DeleteRowCommand;
+            if (cmd?.CanExecute(null) == true)
+            {
+                cmd.Execute(null);
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Back && !isEditing)
+        {
+            var col = grid.CurrentCell.Column;
+            if (col == null || col.IsReadOnly) return;
+
+            grid.BeginEdit();
+            grid.Dispatcher.BeginInvoke(() =>
+            {
+                var item = grid.CurrentItem;
+                if (item == null) return;
+                var row = grid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
+                if (row == null) return;
+                var cell = grid.CurrentCell.Column?.GetCellContent(row)?.Parent as DataGridCell;
+                if (cell?.IsEditing == true && FindInTree<TextBox>(cell) is { } box)
+                {
+                    box.Clear();
+                    box.SelectAll();
+                    box.Focus();
+                }
+            }, System.Windows.Threading.DispatcherPriority.Input);
+            e.Handled = true;
+        }
+    }
+
+    static bool IsCellEditing(DataGrid grid)
+    {
+        var item = grid.CurrentItem;
+        if (item == null) return false;
+        var row = grid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
+        if (row == null) return false;
+        return grid.Columns.Any(c => (c.GetCellContent(row)?.Parent as DataGridCell)?.IsEditing == true);
+    }
+
+    static T? FindInTree<T>(DependencyObject? node) where T : DependencyObject
+    {
+        if (node == null) return null;
+        int n = VisualTreeHelper.GetChildrenCount(node);
+        for (int i = 0; i < n; i++)
+        {
+            var child = VisualTreeHelper.GetChild(node, i);
+            if (child is T match) return match;
+            if (FindInTree<T>(child) is { } deeper) return deeper;
+        }
+        return null;
+    }
+
     void Grid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (sender is not DataGrid grid) return;
